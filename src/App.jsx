@@ -128,7 +128,7 @@ function Card({ title, period, summary, bullets = [], techStack = [] }) {
       className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 md:p-8 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition"
     >
       <h3 className="text-xl md:text-2xl font-bold tracking-tight">{title}</h3>
-      {period && <p className="text-sm text-gray-500 mt-1">{period}</p>}
+      {period && <p className="text-sm font-bold text-white-500 mt-1">{period}</p>}
       {summary && (
         <p className="mt-4 text-gray-700 dark:text-gray-300">{summary}</p>
       )}
@@ -140,7 +140,7 @@ function Card({ title, period, summary, bullets = [], techStack = [] }) {
         </ul>
       )}
       {techStack.length > 0 && (
-        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-4 text-sm font-bold text-white">
           <strong>Tech:</strong> {techStack.join(", ")}
         </p>
       )}
@@ -226,7 +226,7 @@ export default function App() {
             </p>
             <p>
               Currently a Member of Technical Staff at athenahealth, I work on
-              modernizing U.S. healthcare revenue cycle platforms — improving
+              modernizing U.S. healthcare revenue cycle platforms,improving
               autoscaling behavior, reducing P95 latency under peak load,
               implementing multi-region disaster recovery, and leading
               infrastructure migrations from CloudFormation to Terraform and ECS
