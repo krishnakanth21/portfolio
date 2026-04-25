@@ -421,6 +421,10 @@ section#home {
   gap: 12px;
 }
 
+.metrics-grid.eight {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .metric-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -502,6 +506,11 @@ section#home {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
+}
+
+/* When there are many skill groups (10+) switch to tighter layout */
+.skills-grid.wide {
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .skill-group {
@@ -596,6 +605,38 @@ footer {
   font-size: 12px;
   color: var(--text-faint);
   border-top: 1px solid var(--border);
+}
+
+/* ── HERO RELOCATION ── */
+.hero-relocation {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 4px 14px;
+  margin-bottom: 28px;
+  width: fit-content;
+}
+
+/* ── CASE STUDIES PREVIEW (on portfolio page) ── */
+.cs-preview-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.cs-preview-card:hover {
+  border-color: var(--border-accent);
+  transform: translateX(4px);
 }
 
 /* ── RESPONSIVE ── */
