@@ -294,7 +294,7 @@ function Hero() {
       </p>
 
       <div className="hero-relocation">
-        📍 Based in Chennai · Open to relocation — EU / London / Berlin / Amsterdam
+        📍 Based in Chennai · Open to relocation — EU / London / Berlin / Amsterdam / Australia
       </div>
 
       <div className="hero-ctas">
@@ -544,7 +544,7 @@ function Contact() {
           <div className="contact-link-icon" style={{ background: 'var(--green-bg)', color: 'var(--green-text)' }}>↓</div>
           <div>
             <div className="contact-link-title" style={{ color: 'var(--green-text)' }}>Download Resume</div>
-            <div className="contact-link-sub">PDF · EU/London edition</div>
+            <div className="contact-link-sub">PDF</div>
           </div>
         </a>
         <button onClick={copyEmail} className="contact-link">
