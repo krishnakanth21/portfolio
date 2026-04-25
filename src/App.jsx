@@ -368,7 +368,6 @@ function useScrollProgress() {
 // ── COMPONENTS ────────────────────────────────────────────────────────────────
 
 function Nav({ active, theme, setTheme }) {
-  const navigate = useNavigate();
   return (
     <nav>
       <a href="#home" className="nav-logo">KK<span>.</span></a>
