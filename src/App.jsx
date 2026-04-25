@@ -27,7 +27,7 @@ const STATS = [
   { value: "5+",    label: "Years experience" },
   { value: "~40%",  label: "P95 latency cut" },
   { value: "99.9%", label: "Uptime SLA" },
-  { value: "450+",  label: "LeetCode solved" },
+  { value: "450+",  label: "LeetCode problems" },
 ];
 
 const EXPERIENCE = [
@@ -93,11 +93,13 @@ const PROJECTS = [
     title: "Posting Issues Classification & Metrics",
     desc:  "GenAI-powered analytics platform for healthcare insurance billing accuracy. Uses OpenAI + BERT for NLP classification and generates structured corrective metrics.",
     tech:  ["Python", "GenAI", "BERT", "OpenAI API"],
+    link:  null,
   },
   {
     title: "COVID-19 Social Media Stress Analysis",
     desc:  "Real-time Twitter sentiment analysis pipeline for stress detection, recommending contextual stress-mitigation resources based on classified emotional states.",
     tech:  ["Python", "NLP", "Twitter API", "Sentiment Analysis"],
+    link:  null,
   },
 ];
 
@@ -115,7 +117,7 @@ const SKILLS = {
 };
 
 const ACHIEVEMENTS = [
-  { icon: "🏆", text: "450+ LeetCode — 500+ day streak" },
+  { icon: "🏆", text: "450+ LeetCode problems · 500+ day streak" },
   { icon: "⭐", text: "HackerRank 5-Star Gold Badge" },
   { icon: "📄", text: "IEEE Publication — IS'20 Conference" },
   { icon: "🥇", text: "CBSE Gold Medal in English" },
@@ -234,11 +236,9 @@ function LeetCodeHeatmap() {
 
   useEffect(() => {
     const ctrl = new AbortController();
-    console.log('[LeetCode] fetching /api/leetcode...');
     fetch('/api/leetcode', { signal: ctrl.signal })
       .then(r => r.json())
       .then(json => {
-        console.log('[LeetCode] response:', json);
         setCalendar(JSON.parse(json.submissionCalendar));
         setBadges(json.badges || []);
         setLoading(false);
@@ -603,7 +603,13 @@ function Projects() {
       <div className="projects-grid">
         {PROJECTS.map((p, i) => (
           <div className="project-card" key={i}>
-            <div className="project-title">{p.title}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
+              <div className="project-title" style={{ margin: 0 }}>{p.title}</div>
+              {p.link
+                ? <a href={p.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", background: "var(--tag-bg)", border: "1px solid var(--border-accent)", borderRadius: 100, padding: "2px 10px", whiteSpace: "nowrap", textDecoration: "none", flexShrink: 0 }}>GitHub ↗</a>
+                : <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 100, padding: "2px 10px", whiteSpace: "nowrap", flexShrink: 0 }}>Private / NDA</span>
+              }
+            </div>
             <div className="project-desc">{p.desc}</div>
             <div className="pill-row">
               {p.tech.map(t => <span className="pill" key={t}>{t}</span>)}
@@ -721,7 +727,7 @@ function Contact() {
           <div className="contact-link-icon"><Code2 size={16} /></div>
           <div>
             <div className="contact-link-title">LeetCode</div>
-            <div className="contact-link-sub">450+ problems · 500+ day streak</div>
+            <div className="contact-link-sub">450+ problems solved · 500+ day streak</div>
           </div>
         </a>
       </div>
