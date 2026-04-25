@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { CASE_STUDIES } from '../data/caseStudies'
@@ -17,6 +17,7 @@ const AGG_STATS = [
 export default function CaseStudies() {
   const navigate = useNavigate()
   const [active, setActive] = useState('All')
+  useEffect(() => { window.scrollTo(0, 0) }, [])
 
   const filtered = active === 'All'
     ? CASE_STUDIES

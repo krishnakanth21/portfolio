@@ -226,6 +226,132 @@ function MetricCard({ m }) {
   );
 }
 
+function LeetCodeHeatmap() {
+  const [calendar, setCalendar] = useState(null);
+  const [badges, setBadges]     = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState(null);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    console.log('[LeetCode] fetching /api/leetcode...');
+    fetch('/api/leetcode', { signal: ctrl.signal })
+      .then(r => r.json())
+      .then(json => {
+        console.log('[LeetCode] response:', json);
+        setCalendar(JSON.parse(json.submissionCalendar));
+        setBadges(json.badges || []);
+        setLoading(false);
+      })
+      .catch(e => {
+        if (e.name === 'AbortError') return;
+        console.error('[LeetCode] fetch error:', e);
+        setError(e.message);
+        setLoading(false);
+      });
+    return () => ctrl.abort();
+  }, []);
+
+  if (loading) return (
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 24px', marginTop: 24, color: 'var(--text-muted)', fontSize: 13 }}>
+      ⏳ Loading LeetCode activity…
+    </div>
+  );
+  if (error || !calendar) return (
+    <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,80,80,0.4)', borderRadius: 14, padding: '20px 24px', marginTop: 24, color: '#f87171', fontSize: 13 }}>
+      ⚠ LeetCode heatmap failed — check browser console + Vite terminal for details.
+      {error && <div style={{ marginTop: 6, opacity: 0.7, fontSize: 11 }}>{error}</div>}
+    </div>
+  );
+
+  const MS = 24 * 3600 * 1000;
+  const todayUTC = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
+  let startMs = todayUTC - 51 * 7 * MS;
+  startMs -= new Date(startMs).getUTCDay() * MS; // align to Sunday
+
+  const weeks = [];
+  for (let cur = startMs; cur <= todayUTC; cur += 7 * MS) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const ms = cur + d * MS;
+      week.push({ ts: ms / 1000, count: calendar[ms / 1000] || 0, date: new Date(ms) });
+    }
+    weeks.push(week);
+  }
+
+  const allDays  = weeks.flat();
+  const total    = allDays.reduce((s, d) => s + d.count, 0);
+  const active   = allDays.filter(d => d.count > 0).length;
+  let maxStreak = 0, streak = 0;
+  for (const d of allDays) { d.count > 0 ? (streak++, maxStreak = Math.max(maxStreak, streak)) : (streak = 0); }
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthLabels = [];
+  let lastM = -1;
+  weeks.forEach((wk, wi) => {
+    const m = wk[0].date.getUTCMonth();
+    if (m !== lastM) { monthLabels.push({ wi, label: MONTHS[m] }); lastM = m; }
+  });
+
+  const color = n => n === 0 ? 'var(--heatmap-0)' : n <= 2 ? '#166534' : n <= 5 ? '#16a34a' : n <= 9 ? '#22c55e' : '#4ade80';
+  const CELL = 13, GAP = 3;
+
+  return (
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 24px', marginTop: 24, overflowX: 'auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ fontSize: 14, fontWeight: 700 }}>
+          <span style={{ color: 'var(--accent)' }}>{total.toLocaleString()}</span>
+          <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> submissions in the past one year</span>
+        </div>
+        <div style={{ display: 'flex', gap: 16, fontSize: 12, color: 'var(--text-muted)' }}>
+          <span>Total active days: <strong style={{ color: 'var(--text)' }}>{active}</strong></span>
+          <span>Max streak: <strong style={{ color: 'var(--text)' }}>{maxStreak}</strong></span>
+        </div>
+      </div>
+
+      <div style={{ display: 'inline-block' }}>
+        <div style={{ display: 'flex', gap: GAP }}>
+          {weeks.map((wk, wi) => (
+            <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
+              {wk.map((day, di) => (
+                <div key={di} title={`${day.date.toISOString().slice(0,10)}: ${day.count}`}
+                  style={{ width: CELL, height: CELL, borderRadius: 3, background: color(day.count) }} />
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ position: 'relative', height: 18, marginTop: 5 }}>
+          {monthLabels.map(({ wi, label }) => (
+            <span key={label + wi} style={{ position: 'absolute', left: wi * (CELL + GAP), fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {badges.length > 0 && (
+        <div style={{ marginTop: 20, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>Badges</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+            {badges.map((b, i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, width: 72 }}>
+                <img
+                  src={b.icon.startsWith('http') ? b.icon : `https://leetcode.com${b.icon}`}
+                  alt={b.displayName}
+                  style={{ width: 48, height: 48, objectFit: 'contain' }}
+                />
+                <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text)', textAlign: 'center', lineHeight: 1.3 }}>{b.displayName}</div>
+                <div style={{ fontSize: 9, color: 'var(--text-muted)', textAlign: 'center' }}>{b.creationDate}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function useScrollProgress() {
   useEffect(() => {
     const update = () => {
@@ -247,22 +373,11 @@ function Nav({ active, theme, setTheme }) {
     <nav>
       <a href="#home" className="nav-logo">KK<span>.</span></a>
       <div className="nav-links">
-        {NAV.map(n =>
-          n.id === "casestudies" ? (
-            <button
-              key={n.id}
-              onClick={() => navigate("/case-studies")}
-              className="nav-link"
-              style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
-            >
-              {n.label}
-            </button>
-          ) : (
-            <a key={n.id} href={`#${n.id}`} className={`nav-link ${active === n.id ? "active" : ""}`}>
-              {n.label}
-            </a>
-          )
-        )}
+        {NAV.map(n => (
+          <a key={n.id} href={`#${n.id}`} className={`nav-link ${active === n.id ? "active" : ""}`}>
+            {n.label}
+          </a>
+        ))}
         <button className="theme-btn" onClick={() => setTheme(t => (t === "dark" ? "light" : "dark"))} aria-label="Toggle theme">
           {theme === "dark" ? "☀" : "☾"}
         </button>
@@ -395,7 +510,11 @@ function CaseStudiesPreview() {
       <div className="section-eyebrow">03 — Case Studies</div>
       <h2 className="section-title">Engineering deep dives</h2>
       <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: 28, maxWidth: 520, lineHeight: 1.75 }}>
-        Eleven systems I've designed, built, and operated — documented with full STAR format, architecture decisions, and real metrics.
+        Eleven systems I've designed, built, and operated: documented with full STAR format, architecture decisions, and real metrics.
+      </p>
+
+      <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: 28, maxWidth: 520, lineHeight: 1.75 }}>
+        Please click anyone of the case studies below for a detailed walkthrough of the problem, solution, impact and before/after metrics!
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
@@ -518,6 +637,7 @@ function Skills() {
             </div>
           ))}
         </div>
+        <LeetCodeHeatmap />
       </div>
     </section>
   );
