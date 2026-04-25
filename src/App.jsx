@@ -368,20 +368,43 @@ function useScrollProgress() {
 // ── COMPONENTS ────────────────────────────────────────────────────────────────
 
 function Nav({ active, theme, setTheme }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const close = () => setMenuOpen(false);
+
   return (
-    <nav>
-      <a href="#home" className="nav-logo">KK<span>.</span></a>
-      <div className="nav-links">
-        {NAV.map(n => (
-          <a key={n.id} href={`#${n.id}`} className={`nav-link ${active === n.id ? "active" : ""}`}>
-            {n.label}
-          </a>
-        ))}
-        <button className="theme-btn" onClick={() => setTheme(t => (t === "dark" ? "light" : "dark"))} aria-label="Toggle theme">
-          {theme === "dark" ? "☀" : "☾"}
-        </button>
-      </div>
-    </nav>
+    <>
+      <nav>
+        <a href="#home" className="nav-logo" onClick={close}>KK<span>.</span></a>
+        <div className="nav-links">
+          {NAV.map(n => (
+            <a key={n.id} href={`#${n.id}`} className={`nav-link ${active === n.id ? "active" : ""}`}>
+              {n.label}
+            </a>
+          ))}
+          <button className="theme-btn" onClick={() => setTheme(t => (t === "dark" ? "light" : "dark"))} aria-label="Toggle light/dark theme">
+            {theme === "dark" ? "☀" : "☾"}
+          </button>
+          <button className="hamburger-btn" onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu" aria-expanded={menuOpen}>
+            {menuOpen ? "✕" : "☰"}
+          </button>
+        </div>
+      </nav>
+
+      {menuOpen && (
+        <div className="mobile-menu">
+          {NAV.map(n => (
+            <a
+              key={n.id}
+              href={`#${n.id}`}
+              className={`mobile-nav-link ${active === n.id ? "active" : ""}`}
+              onClick={close}
+            >
+              {n.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 

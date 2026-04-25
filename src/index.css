@@ -641,6 +641,51 @@ footer {
   transform: translateX(4px);
 }
 
+/* ── HAMBURGER ── */
+.hamburger-btn {
+  display: none;
+  width: 32px; height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  margin-left: 6px;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+.hamburger-btn:hover { border-color: var(--accent); }
+
+/* ── MOBILE MENU ── */
+.mobile-menu {
+  position: fixed;
+  top: 56px; left: 0; right: 0;
+  z-index: 49;
+  background: color-mix(in srgb, var(--bg) 96%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobile-nav-link {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 10px 14px;
+  border-radius: 9px;
+  transition: color 0.15s, background 0.15s;
+}
+.mobile-nav-link:hover { color: var(--text); background: var(--bg-card); }
+.mobile-nav-link.active { color: var(--accent); background: var(--tag-bg); }
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
@@ -650,8 +695,7 @@ footer {
   .achievements-grid { grid-template-columns: repeat(2, 1fr); }
   .contact-grid { grid-template-columns: 1fr; }
   .nav-link { display: none; }
-  .nav-link.resume-link,
-  .nav-link:last-of-type { display: flex; }
+  .hamburger-btn { display: flex; }
 }
 
 @media (max-width: 480px) {
