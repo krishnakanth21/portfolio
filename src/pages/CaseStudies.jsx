@@ -119,11 +119,12 @@ export default function CaseStudies() {
 function CaseStudyCard({ cs, onClick }) {
   const [hovered, setHovered] = useState(false)
   return (
-    <div
+    <button
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        width: '100%', textAlign: 'left', fontFamily: 'inherit',
         background: 'var(--bg-card)',
         border: `1px solid ${hovered ? 'var(--border-accent)' : 'var(--border)'}`,
         borderRadius: 14, padding: '22px 26px',
@@ -187,6 +188,6 @@ function CaseStudyCard({ cs, onClick }) {
           <span style={{ fontSize: 11, color: 'var(--text-muted)', alignSelf: 'center' }}>+{cs.stack.length - 7} more</span>
         )}
       </div>
-    </div>
+    </button>
   )
 }

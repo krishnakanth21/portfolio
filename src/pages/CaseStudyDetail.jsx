@@ -7,8 +7,15 @@ export default function CaseStudyDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const cs = CASE_STUDIES.find(c => c.id === id)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href).catch(() => {})
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   if (!cs) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
@@ -38,7 +45,18 @@ export default function CaseStudyDetail() {
           Case Studies
         </button>
         <span style={{ color: 'var(--text-faint)', fontSize: 13 }}>/</span>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cs.code} — {cs.title}</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{cs.code} — {cs.title}</span>
+        <button onClick={copyLink} style={{
+          display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+          background: copied ? 'var(--tag-bg)' : 'var(--bg-card)',
+          border: `1px solid ${copied ? 'var(--border-accent)' : 'var(--border)'}`,
+          borderRadius: 7, padding: '5px 12px',
+          color: copied ? 'var(--accent)' : 'var(--text-muted)',
+          fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+          transition: 'all 0.15s',
+        }}>
+          {copied ? '✓ Copied' : '⎘ Copy link'}
+        </button>
       </div>
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '52px 24px 96px' }}>
@@ -272,23 +290,42 @@ function QACard({ qa }) {
 function NextPrev({ current }) {
   const navigate = useNavigate()
   const idx = CASE_STUDIES.findIndex(c => c.id === current.id)
+  const prev = CASE_STUDIES[idx - 1]
   const next = CASE_STUDIES[idx + 1]
-  if (!next) return null
+
+  const btnStyle = (accent) => ({
+    display: 'flex', alignItems: 'center', gap: 8,
+    background: accent ? 'var(--tag-bg)' : 'var(--bg-card)',
+    border: `1px solid ${accent ? 'var(--border-accent)' : 'var(--border)'}`,
+    borderRadius: 8, padding: '10px 18px',
+    color: accent ? 'var(--accent)' : 'var(--text)',
+    fontFamily: 'inherit', fontSize: 14, fontWeight: 600,
+    cursor: 'pointer', transition: 'opacity 0.15s',
+  })
+
   return (
-    <button
-      onClick={() => navigate(`/case-studies/${next.id}`)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        background: 'var(--tag-bg)', border: '1px solid var(--border-accent)',
-        borderRadius: 8, padding: '10px 18px',
-        color: 'var(--accent)', fontFamily: 'inherit', fontSize: 14, fontWeight: 600,
-        cursor: 'pointer', transition: 'opacity 0.15s',
-      }}
-      onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
-      onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-    >
-      {next.code}: {next.title} →
-    </button>
+    <div style={{ display: 'flex', gap: 10 }}>
+      {prev && (
+        <button
+          onClick={() => navigate(`/case-studies/${prev.id}`)}
+          style={btnStyle(false)}
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+        >
+          ← {prev.code}: {prev.title}
+        </button>
+      )}
+      {next && (
+        <button
+          onClick={() => navigate(`/case-studies/${next.id}`)}
+          style={btnStyle(true)}
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+        >
+          {next.code}: {next.title} →
+        </button>
+      )}
+    </div>
   )
 }
 

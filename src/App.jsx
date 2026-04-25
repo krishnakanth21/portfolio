@@ -235,17 +235,27 @@ function LeetCodeHeatmap() {
   const [error, setError]       = useState(null);
 
   useEffect(() => {
+    const cached = sessionStorage.getItem('lc_data');
+    if (cached) {
+      const { calendar, badges } = JSON.parse(cached);
+      setCalendar(calendar);
+      setBadges(badges);
+      setLoading(false);
+      return;
+    }
     const ctrl = new AbortController();
     fetch('/api/leetcode', { signal: ctrl.signal })
       .then(r => r.json())
       .then(json => {
-        setCalendar(JSON.parse(json.submissionCalendar));
-        setBadges(json.badges || []);
+        const calendar = JSON.parse(json.submissionCalendar);
+        const badges = json.badges || [];
+        sessionStorage.setItem('lc_data', JSON.stringify({ calendar, badges }));
+        setCalendar(calendar);
+        setBadges(badges);
         setLoading(false);
       })
       .catch(e => {
         if (e.name === 'AbortError') return;
-        console.error('[LeetCode] fetch error:', e);
         setError(e.message);
         setLoading(false);
       });
@@ -478,7 +488,7 @@ function Experience() {
                     overflow: "hidden", border: "1px solid var(--border)",
                   }}>
                     {exp.logo.type === 'img'
-                      ? <img src={exp.logo.src} alt={exp.company} style={{ width: 36, height: 36, objectFit: "contain" }} />
+                      ? <img src={exp.logo.src} alt={exp.company} width={36} height={36} style={{ width: 36, height: 36, objectFit: "contain" }} />
                       : <span style={{ fontSize: 12, fontWeight: 800, color: exp.logo.color, letterSpacing: "-0.02em" }}>{exp.logo.abbr}</span>
                     }
                   </div>
@@ -559,11 +569,12 @@ function CaseStudiesPreview() {
 function FeaturedCsCard({ cs, onClick }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <div
+    <button
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        width: "100%", textAlign: "left", fontFamily: "inherit",
         background: "var(--bg-card)",
         border: `1px solid ${hovered ? "var(--border-accent)" : "var(--border)"}`,
         borderRadius: 14, padding: "18px 22px",
@@ -591,7 +602,7 @@ function FeaturedCsCard({ cs, onClick }) {
         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{cs.subtitle}</div>
       </div>
       <ArrowRight size={16} color="var(--text-faint)" style={{ flexShrink: 0 }} />
-    </div>
+    </button>
   );
 }
 
