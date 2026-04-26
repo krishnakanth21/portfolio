@@ -96,7 +96,7 @@ export default function CaseStudyDetail() {
 
         {/* Before / After */}
         {cs.beforeItems && cs.afterItems && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+          <div className="before-after-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px' }}>
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 14 }}>Before</div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -312,7 +312,8 @@ function NextPrev({ current }) {
           onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}
         >
-          ← {prev.code}: {prev.title}
+          <span className="nextprev-full">← {prev.code}: {prev.title}</span>
+          <span className="nextprev-short">← {prev.code}</span>
         </button>
       )}
       {next && (
@@ -322,7 +323,8 @@ function NextPrev({ current }) {
           onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}
         >
-          {next.code}: {next.title} →
+          <span className="nextprev-full">{next.code}: {next.title} →</span>
+          <span className="nextprev-short">{next.code} →</span>
         </button>
       )}
     </div>

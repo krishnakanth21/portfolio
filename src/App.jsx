@@ -64,7 +64,7 @@ const EXPERIENCE = [
   },
   {
     company: "Profinch",
-    logo: { type: 'text', abbr: 'PF', bg: '#1E3A8A', color: '#fff' },
+    logo: { type: 'img', src: '/logos/profinch.png', bg: '#fff' },
     role: "Data Analyst Intern",
     period: "May 2020 – Jun 2020",
     location: "Bangalore, India",
@@ -104,10 +104,10 @@ const PROJECTS = [
 ];
 
 const SKILLS = {
-  Languages:                  ["Java", "SQL", "Python", "Perl", "Bash", "C++", "Infrastructure as Code (IaC)"],
+  Languages:                  ["Java", "SQL", "Python", "Perl", "Bash", "C++"],
   Backend:                    ["Spring Boot", "REST APIs", "Microservices", "Distributed Systems", "Async Messaging", "Event-Driven Architecture"],
   "Cloud & AWS":              ["ECS", "EKS", "EC2", "S3", "RDS", "SQS", "API Gateway", "CloudWatch", "IAM", "DMS", "SSM", "Secrets Manager", "Parameter Store", "AWS SageMaker"],
-  Infrastructure:             ["Terraform", "Docker", "Kubernetes", "Helm", "Jenkins", "Harness", "CI/CD", "KEDA", "ExternalSecrets"],
+  Infrastructure:             ["Terraform", "Docker", "Kubernetes", "Helm", "Jenkins", "Harness", "CI/CD", "KEDA", "ExternalSecrets", "Infrastructure as Code (IaC)"],
   Observability:              ["Prometheus", "Grafana 11", "OpenSearch", "GrayLog", "AWS CloudWatch", "AlertManager", "Micrometer"],
   Databases:                  ["PostgreSQL", "Flyway", "Liquibase", "Debezium CDC", "Kafka/MSK", "DMS"],
   "Security & Secrets":       ["HashiCorp Vault", "AWS Secrets Manager", "IRSA", "IAM Roles and Groups", "Row-Level Security"],
@@ -307,7 +307,7 @@ function LeetCodeHeatmap() {
   const CELL = 13, GAP = 3;
 
   return (
-    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 24px', marginTop: 24, overflowX: 'auto' }}>
+    <div className="heatmap-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 24px', marginTop: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
         <div style={{ fontSize: 14, fontWeight: 700 }}>
           <span style={{ color: 'var(--accent)' }}>{total.toLocaleString()}</span>
@@ -319,26 +319,29 @@ function LeetCodeHeatmap() {
         </div>
       </div>
 
-      <div style={{ display: 'inline-block' }}>
-        <div style={{ display: 'flex', gap: GAP }}>
-          {weeks.map((wk, wi) => (
-            <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
-              {wk.map((day, di) => (
-                <div key={di} title={`${day.date.toISOString().slice(0,10)}: ${day.count}`}
-                  style={{ width: CELL, height: CELL, borderRadius: 3, background: color(day.count) }} />
-              ))}
-            </div>
-          ))}
-        </div>
+      <div className="heatmap-scroll">
+        <div style={{ display: 'inline-block' }}>
+          <div style={{ display: 'flex', gap: GAP }}>
+            {weeks.map((wk, wi) => (
+              <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
+                {wk.map((day, di) => (
+                  <div key={di} title={`${day.date.toISOString().slice(0,10)}: ${day.count}`}
+                    style={{ width: CELL, height: CELL, borderRadius: 3, background: color(day.count) }} />
+                ))}
+              </div>
+            ))}
+          </div>
 
-        <div style={{ position: 'relative', height: 18, marginTop: 5 }}>
-          {monthLabels.map(({ wi, label }) => (
-            <span key={label + wi} style={{ position: 'absolute', left: wi * (CELL + GAP), fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>
-              {label}
-            </span>
-          ))}
+          <div style={{ position: 'relative', height: 18, marginTop: 5 }}>
+            {monthLabels.map(({ wi, label }) => (
+              <span key={label + wi} style={{ position: 'absolute', left: wi * (CELL + GAP), fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
+      <div className="heatmap-scroll-hint">swipe to scroll</div>
 
       {badges.length > 0 && (
         <div style={{ marginTop: 20, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
@@ -546,7 +549,7 @@ function CaseStudiesPreview() {
       </p>
 
       <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: 28, maxWidth: 520, lineHeight: 1.75 }}>
-        Please click anyone of the case studies below for a detailed walkthrough of the problem, solution, impact and before/after metrics!
+        Click any case study below for a detailed walkthrough of the problem, solution, impact, and before/after metrics.
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
@@ -573,8 +576,9 @@ function FeaturedCsCard({ cs, onClick }) {
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      className="featured-cs-card"
       style={{
-        width: "100%", textAlign: "left", fontFamily: "inherit",
+        width: "100%", textAlign: "left", fontFamily: "inherit", color: "var(--text)",
         background: "var(--bg-card)",
         border: `1px solid ${hovered ? "var(--border-accent)" : "var(--border)"}`,
         borderRadius: 14, padding: "18px 22px",
@@ -781,6 +785,20 @@ function Portfolio() {
   );
 }
 
+function NotFound() {
+  const navigate = useNavigate();
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, textAlign: 'center', padding: '0 24px' }}>
+      <div style={{ fontSize: 72, fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--accent)', lineHeight: 1 }}>404</div>
+      <div style={{ fontSize: 18, fontWeight: 700 }}>Page not found</div>
+      <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>This URL doesn't exist.</div>
+      <button onClick={() => navigate('/')} style={{ marginTop: 8, padding: '10px 24px', borderRadius: 100, background: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+        Back to portfolio
+      </button>
+    </div>
+  );
+}
+
 // ── APP WITH ROUTES ───────────────────────────────────────────────────────────
 
 export default function App() {
@@ -793,6 +811,7 @@ export default function App() {
       <Route path="/"                   element={<Portfolio />} />
       <Route path="/case-studies"       element={<CaseStudies />} />
       <Route path="/case-studies/:id"   element={<CaseStudyDetail />} />
+      <Route path="*"                   element={<NotFound />} />
     </Routes>
   );
 }

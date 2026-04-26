@@ -409,9 +409,6 @@ section#home {
   gap: 12px;
 }
 
-.metrics-grid.eight {
-  grid-template-columns: repeat(4, 1fr);
-}
 
 .metric-card {
   background: var(--bg-card);
@@ -496,10 +493,6 @@ section#home {
   gap: 12px;
 }
 
-/* When there are many skill groups (10+) switch to tighter layout */
-.skills-grid.wide {
-  grid-template-columns: repeat(4, 1fr);
-}
 
 .skill-group {
   background: var(--bg-card);
@@ -610,22 +603,6 @@ footer {
   width: fit-content;
 }
 
-/* ── CASE STUDIES PREVIEW (on portfolio page) ── */
-.cs-preview-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 22px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  transition: border-color 0.2s, transform 0.2s;
-}
-.cs-preview-card:hover {
-  border-color: var(--border-accent);
-  transform: translateX(4px);
-}
 
 /* ── HAMBURGER ── */
 .hamburger-btn {
@@ -672,6 +649,12 @@ footer {
 .mobile-nav-link:hover { color: var(--text); background: var(--bg-card); }
 .mobile-nav-link.active { color: var(--accent); background: var(--tag-bg); }
 
+.heatmap-scroll { overflow-x: auto; }
+.heatmap-scroll-hint { display: none; font-size: 11px; color: var(--text-faint); text-align: center; margin-top: 10px; }
+
+.nextprev-short { display: none; }
+.nextprev-full  { display: inline; }
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
@@ -682,10 +665,23 @@ footer {
   .contact-grid { grid-template-columns: 1fr; }
   .nav-link { display: none; }
   .hamburger-btn { display: flex; }
+
+  .timeline-header { flex-direction: column; gap: 8px; }
+  .timeline-meta { text-align: left; }
+  .timeline-card { padding: 16px; }
+
+  .hero-ctas { flex-wrap: wrap; }
+  .hero-ctas .btn-primary { width: 100%; justify-content: center; }
+  .hero-ctas .btn-secondary { flex: 1; min-width: 120px; justify-content: center; }
+  .heatmap-scroll-hint { display: block; }
+  .before-after-grid { grid-template-columns: 1fr !important; }
+  .nextprev-full { display: none; }
+  .nextprev-short { display: inline; }
 }
 
 @media (max-width: 480px) {
   .hero-name { font-size: 52px; }
   .skills-grid { grid-template-columns: 1fr; }
   .achievements-grid { grid-template-columns: 1fr; }
+  .featured-cs-card { padding: 14px 16px !important; gap: 12px !important; }
 }
