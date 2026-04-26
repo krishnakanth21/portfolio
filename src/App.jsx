@@ -574,7 +574,7 @@ function FeaturedCsCard({ cs, onClick }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        width: "100%", textAlign: "left", fontFamily: "inherit",
+        width: "100%", textAlign: "left", fontFamily: "inherit", color: "var(--text)",
         background: "var(--bg-card)",
         border: `1px solid ${hovered ? "var(--border-accent)" : "var(--border)"}`,
         borderRadius: 14, padding: "18px 22px",
