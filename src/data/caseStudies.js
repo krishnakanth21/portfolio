@@ -90,6 +90,16 @@ Risk flagged: Native DELETE queries don't explicitly check context_id — mitiga
       { q: "What happens if a developer writes native SQL and forgets context_id filter?", a: "Three things catch it: (1) AOP interceptor still sets PostgreSQL session variable (my.tenant_identifier) which backs RLS — if RLS enabled, DB blocks it. (2) Integration tests fail if query returns cross-tenant data (test fixtures with multiple contexts). (3) Code review catches it — native SQL is rare and visible. But it's the weakest link, which is why I flagged it as requiring explicit context_id in native DELETE/UPDATE for true defense-in-depth." },
       { q: "How did you validate all 8 layers work independently?", a: "Tested each in isolation by disabling others: removed servlet filter → controller tests caught it; cleared thread-local mid-request → empty results (fail-closed); disabled Hibernate filter → leaked data; removed AOP aspect → filter never activated; removed DB session variable → RLS tests failed; used findById → hard exception; removed NOT NULL → DB rejected insert; tested async without setCurrentPracticeId → empty results. Each works independently; together they're redundant by design." },
     ],
+    architecture: [
+      { aspect: "Isolation model",  before: "Naive SQL — every query leaks all tenant data",      after: "8-layer defense-in-depth (structurally impossible to leak)" },
+      { aspect: "context_id scope", before: "Manual WHERE clause — 200+ query sites, each a risk", after: "Hibernate @FilterDef auto-stamps every JPA SELECT" },
+      { aspect: "AOP activation",   before: "Developer must call enableFilter() — easy to forget", after: "AspectJ interceptor activates filter on every repository call" },
+      { aspect: "findById()",       before: "Bypasses Hibernate filter — silent cross-tenant read",  after: "CustomRepository throws hard — no silent bypass" },
+      { aspect: "DB enforcement",   before: "None — application layer only",                         after: "PostgreSQL RLS via session variable (my.tenant_identifier)" },
+      { aspect: "Async paths",      before: "Kafka / Camunda carry no practice context",             after: "ThreadLocal default -1L + explicit injection on ingest" },
+      { aspect: "Schema",           before: "context_id nullable — rows can be orphaned",            after: "NOT NULL + composite indexes on (context_id, …)" },
+      { aspect: "Compliance risk",  before: "HIPAA breach on any missed WHERE clause",               after: "Regulatory risk eliminated at architecture level" },
+    ],
   },
 
   // ─── D-1 ────────────────────────────────────────────────────────────────
@@ -128,6 +138,15 @@ The root cause wasn't a single bug — it was an architectural decision to use b
       { q: "How did you handle exactly-once delivery in Kafka?", a: "LSN checkpointing on the consumer side — each batch persists its last processed LSN before committing. Combined with idempotent upserts at the write layer, this gives effectively exactly-once semantics without Kafka transactions, which add producer-side overhead. The insight: idempotency at the write layer gives the same guarantees without the complexity." },
       { q: "What happens if the Debezium connector restarts mid-stream?", a: "Debezium stores its WAL offset in a dedicated Kafka topic. When the connector restarts, it reads from the last committed offset and resumes from exactly that position. Combined with LSN checkpointing on the consumer, we can handle connector restarts, consumer restarts, and partial failures without data loss or duplication. We tested this failure scenario explicitly in staging before rollout." },
       { q: "How did you validate parity before cutting over?", a: "Ran the old batch system and new CDC pipeline in parallel for 2 weeks, comparing outputs row-by-row. Any divergence was flagged and investigated. This caught 2 edge cases in the Debezium connector configuration that would have caused subtle data issues in production." },
+    ],
+    architecture: [
+      { aspect: "Replication method", before: "Batch JDBC polling — queries production tables directly",   after: "Debezium WAL-based CDC — reads PostgreSQL write-ahead log" },
+      { aspect: "P99 replication lag", before: "7 days (batch window + queue backlog)",                   after: "30 seconds (streaming, near-real-time)" },
+      { aspect: "Production impact",   before: "Heavy read queries on live tables under peak load",        after: "Zero — WAL tailing is non-invasive to the primary" },
+      { aspect: "Transport",           before: "Direct DB writes (synchronous, blocking)",                 after: "Kafka/MSK event streams (async, partitioned)" },
+      { aspect: "Failure handling",    before: "Jobs fail silently — data gap with no alert",              after: "At-least-once delivery with committed LSN checkpoints" },
+      { aspect: "Parallelism",         before: "Sequential batch jobs — head-of-line blocking",            after: "Parallel Kafka consumers per partition" },
+      { aspect: "Data loss risk",      before: "Any crash between batches loses that window's events",     after: "Zero data loss — WAL retains events until committed" },
     ],
   },
 
@@ -169,6 +188,16 @@ What made this unusually high-stakes: the AR cutover was tightly coupled to the 
       { q: "What was the hardest part of this migration?", a: "The Flyway → Liquibase tooling migration happening in parallel with the EKS work. In non-prod, we hit a schema locking issue because a changeSet was not idempotent and ran twice. Caught it early because we had a dry-run environment. That near-miss is exactly why we spent 2 weeks validating in non-prod before touching prod." },
       { q: "Why did you volunteer — it wasn't originally your responsibility?", a: "The migration was assigned to the platform team to 'eventually' drive. But it was slowing down my team — we couldn't scale effectively, deployments had too much manual toil. I saw it as a problem I could solve, and waiting for someone else to prioritise it would have meant months more of operational drag. I proposed owning it, got buy-in from my tech lead, and the scope grew — but so did the impact." },
       { q: "How did you make sure knowledge didn't stay siloed with you?", a: "Every decision documented in a shared Confluence space with the 'why' behind it, not just the 'what.' The 3 KT sessions were hands-on — engineers actually debugged a sample pod failure and performed a rollback exercise in staging. I tracked when teammates started filing EKS infra tickets without pinging me — that was my measure of independence." },
+    ],
+    architecture: [
+      { aspect: "Cluster",        before: "ECS on EC2 instances (legacy managed)",       after: "EKS with Helm charts (ath-reference-chart v1.9.0)" },
+      { aspect: "Autoscaling",    before: "CPU-based — wrong signal for I/O workloads",  after: "KEDA on SQS queue depth — scales with actual load" },
+      { aspect: "Secrets",        before: "AWS SSM Parameter Store (manual rotation)",   after: "HashiCorp Vault + ExternalSecrets Operator + IRSA" },
+      { aspect: "CI/CD",          before: "Jenkins (manual triggers, toil-heavy)",        after: "Harness pipelines (automated, per-env config)" },
+      { aspect: "DB migration",   before: "In-place (schema lock risk, downtime window)", after: "AWS DMS Full Load + CDC (zero-downtime cutover)" },
+      { aspect: "Observability",  before: "Ad-hoc CloudWatch (no standardised alerts)",  after: "Prometheus + Grafana with 6 alert rules per SLA" },
+      { aspect: "Regions",        before: "Single region (us-east-1 only)",              after: "us-east-1 + us-west-2 active/DR standby" },
+      { aspect: "Prod window",    before: "N/A — migration not attempted",               after: "7 hours (9 PM – 4 AM EDT), 6 teams, 0 incidents" },
     ],
   },
 

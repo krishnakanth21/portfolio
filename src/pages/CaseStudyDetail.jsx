@@ -94,6 +94,31 @@ export default function CaseStudyDetail() {
           ))}
         </div>
 
+        {/* Architecture */}
+        {cs.architecture && (
+          <div style={{ marginBottom: 24 }}>
+            <div className="section-eyebrow" style={{ marginBottom: 14 }}>Architecture</div>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr 1fr', background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ padding: '10px 16px', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }} />
+                <div style={{ padding: '10px 16px', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ef4444', borderLeft: '1px solid var(--border)' }}>Before</div>
+                <div style={{ padding: '10px 16px', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--green)', borderLeft: '1px solid var(--border)' }}>After</div>
+              </div>
+              {cs.architecture.map((row, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '140px 1fr 1fr', borderBottom: i < cs.architecture.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <div style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.02em', display: 'flex', alignItems: 'center' }}>{row.aspect}</div>
+                  <div style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, borderLeft: '1px solid var(--border)', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ color: '#ef4444', marginRight: 6, flexShrink: 0 }}>✗</span>{row.before}
+                  </div>
+                  <div style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text)', lineHeight: 1.5, borderLeft: '1px solid var(--border)', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ color: 'var(--green)', marginRight: 6, flexShrink: 0 }}>✓</span>{row.after}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Before / After */}
         {cs.beforeItems && cs.afterItems && (
           <div className="before-after-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
@@ -332,30 +357,7 @@ function NextPrev({ current }) {
 }
 
 function AnimatedNumber({ value }) {
-  const trimmed = String(value).trim()
-  const num = parseInt(trimmed, 10)
-  const isPlainInt = !isNaN(num) && String(num) === trimmed
-
-  const start = isPlainInt ? (num === 0 ? 100 : 0) : null
-  const [display, setDisplay] = useState(start)
-
-  useEffect(() => {
-    if (!isPlainInt) return
-    const end = num
-    const from = num === 0 ? 100 : 0
-    const duration = 1000
-    const startTime = performance.now()
-
-    const tick = (now) => {
-      const t = Math.min((now - startTime) / duration, 1)
-      const eased = 1 - Math.pow(1 - t, 3)
-      setDisplay(Math.round(from + (end - from) * eased))
-      if (t < 1) requestAnimationFrame(tick)
-    }
-    requestAnimationFrame(tick)
-  }, [])
-
-  return <>{isPlainInt ? display : value}</>
+  return <>{value}</>
 }
 
 const navBtnStyle = {

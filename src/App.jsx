@@ -11,17 +11,12 @@ const NAV = [
   { id: "home",        label: "Home" },
   { id: "experience",  label: "Experience" },
   { id: "casestudies", label: "Case Studies" },
+  { id: "writing",     label: "Writing" },
   { id: "projects",    label: "Projects" },
   { id: "skills",      label: "Skills" },
   { id: "contact",     label: "Contact" },
 ];
 
-const ROLES = [
-  "Backend Engineer",
-  "Distributed Systems Engineer",
-  "Platform Engineering · SRE-II",
-  "Java · AWS · Kubernetes",
-];
 
 const STATS = [
   { value: "5+",    label: "Years experience" },
@@ -64,7 +59,7 @@ const EXPERIENCE = [
   },
   {
     company: "Profinch",
-    logo: { type: 'img', src: '/logos/profinch.png', bg: '#fff' },
+    logo: { type: 'img', src: '/logos/profinch.png', bg: '#fff', fallbackAbbr: 'PF', fallbackColor: '#4060ee', fallbackBg: 'rgba(64,96,238,0.12)' },
     role: "Data Analyst Intern",
     period: "May 2020 – Jun 2020",
     location: "Bangalore, India",
@@ -130,33 +125,59 @@ const FEATURED_CS = CASE_STUDIES.filter(cs =>
   ["claims-view-bulk-api", "eks-migration", "cdc-pipeline"].includes(cs.id)
 );
 
+const SYSTEMS = [
+  {
+    abbr: "S-1",
+    metric: "8-Layer",
+    metricLabel: "Tenant Isolation",
+    title: "Multi-Tenant Security Architecture",
+    hook: "HIPAA-compliant isolation enforced at 8 independent layers — from RLS to application-level guards",
+    id: "tenant-isolation",
+    tags: ["PostgreSQL", "Row-Level Security", "Spring Boot"],
+  },
+  {
+    abbr: "A-1",
+    metric: "N → 1",
+    metricLabel: "API Calls",
+    title: "AR Claims View Bulk API",
+    hook: "Collapsed N per-page API calls into a single 2-query architecture, cutting latency to < 200ms",
+    id: "claims-view-bulk-api",
+    tags: ["Spring Boot", "PostgreSQL", "REST API"],
+  },
+  {
+    abbr: "P-1",
+    metric: "0",
+    metricLabel: "Downtime",
+    title: "Zero-Downtime EKS Migration",
+    hook: "ECS → EKS migration coordinating 6 teams across all environments with zero business disruption",
+    id: "eks-migration",
+    tags: ["Kubernetes", "Helm", "Harness CI/CD"],
+  },
+];
+
+const ARTICLES = [
+  {
+    title: "PostgreSQL CDC Done Right: Achieving Sub-30s P99 Replication Lag",
+    summary: "How I reduced replication lag from 7 days to under 30 seconds using Debezium and Kafka, with zero data loss and no application downtime.",
+    url: "https://medium.com/@krishnakanthe99/postgresql-cdc-done-right-achieving-sub-30s-p99-replication-lag-ca003e0358be",
+    tags: ["PostgreSQL", "Debezium", "Kafka", "CDC"],
+  },
+  {
+    title: "Zero-Downtime EKS Migration: Production-Grade Kubernetes at Scale",
+    summary: "A step-by-step breakdown of migrating from ECS to EKS across 6 teams — covering Helm, KEDA autoscaling, Vault integration, and rollback strategy.",
+    url: "https://medium.com/@krishnakanthe99/zero-downtime-eks-migration-production-grade-kubernetes-at-scale-fe4725cb70bb",
+    tags: ["Kubernetes", "EKS", "Helm", "DevOps"],
+  },
+  {
+    title: "Building Secure Financial Applications with Claude Code",
+    summary: "Security-first patterns for HIPAA-compliant healthcare systems — multi-tenant isolation, secrets management, audit trails, and AI-assisted development.",
+    url: "https://medium.com/@krishnakanthe99/building-secure-financial-applications-with-claude-code-a-security-first-approach-65b8decca971",
+    tags: ["Security", "HIPAA", "Claude Code", "FinTech"],
+  },
+];
+
 // ── HOOKS ─────────────────────────────────────────────────────────────────────
 
-function useTyping(items, speed = 65, pause = 2200) {
-  const [display, setDisplay] = useState("");
-  const [idx, setIdx]         = useState(0);
-  const [deleting, setDeleting] = useState(false);
-
-  useEffect(() => {
-    const current = items[idx];
-    let t;
-    if (!deleting && display === current) {
-      t = setTimeout(() => setDeleting(true), pause);
-    } else if (deleting && display === "") {
-      setDeleting(false);
-      setIdx(i => (i + 1) % items.length);
-    } else {
-      t = setTimeout(() => {
-        setDisplay(prev =>
-          deleting ? prev.slice(0, -1) : current.slice(0, prev.length + 1)
-        );
-      }, deleting ? speed * 0.5 : speed);
-    }
-    return () => clearTimeout(t);
-  }, [display, deleting, idx, items, speed, pause]);
-
-  return display;
-}
 
 function useActiveSection() {
   const [active, setActive] = useState("home");
@@ -380,12 +401,39 @@ function useScrollProgress() {
 
 // ── COMPONENTS ────────────────────────────────────────────────────────────────
 
+function CompanyLogo({ logo, company }) {
+  const [failed, setFailed] = useState(false);
+  const showImg = logo.type === 'img' && !failed;
+  return (
+    <div style={{
+      width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+      background: showImg ? (logo.bg || '#fff') : (logo.fallbackBg || logo.bg),
+      display: "flex", alignItems: "center", justifyContent: "center",
+      overflow: "hidden", border: "1px solid var(--border)",
+    }}>
+      {showImg
+        ? <img
+            src={logo.src}
+            alt={company}
+            width={36} height={36}
+            style={{ width: 36, height: 36, objectFit: "contain" }}
+            onError={() => setFailed(true)}
+          />
+        : <span style={{ fontSize: 12, fontWeight: 800, color: logo.fallbackColor || logo.color, letterSpacing: "-0.02em" }}>
+            {logo.fallbackAbbr || logo.abbr}
+          </span>
+      }
+    </div>
+  );
+}
+
 function Nav({ active, theme, setTheme }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const close = () => setMenuOpen(false);
 
   return (
     <>
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <nav>
         <a href="#home" className="nav-logo" onClick={close}>KK<span>.</span></a>
         <div className="nav-links">
@@ -422,24 +470,18 @@ function Nav({ active, theme, setTheme }) {
 }
 
 function Hero() {
-  const role = useTyping(ROLES);
   return (
     <section id="home">
-      <div className="hero-badge">
-        <span className="hero-badge-dot" />
-        Open to Senior Backend · Platform Engineering · SRE-II roles
-      </div>
-
       <h1 className="hero-name">
         Krishnakanth<br /><span className="accent">Eswaran</span>
       </h1>
 
       <p className="hero-role">
-        {role}<span className="cursor" />
+        Senior Software Engineer
       </p>
 
       <p className="hero-desc">
-        5+ years building high-throughput distributed financial systems on AWS.
+        Building high-throughput distributed financial systems on AWS.
         Specialized in resilience engineering, cloud infrastructure, and production reliability at scale.
       </p>
 
@@ -448,15 +490,13 @@ function Hero() {
       </div>
 
       <div className="hero-ctas">
-        <a href="#contact" className="btn-primary">Get in touch →</a>
+        <a href="#casestudies" className="btn-primary">View Case Studies →</a>
         <a
           href="/Resume_Krishnakanth_EU_2026.pdf"
           download="Resume_Krishnakanth_Eswaran.pdf"
           className="btn-primary"
           style={{ background: 'var(--green)', color: '#fff' }}
         >↓ Resume PDF</a>
-        <a href="https://linkedin.com/in/krishnakanth-eswaran" target="_blank" rel="noopener noreferrer" className="btn-secondary">LinkedIn ↗</a>
-        <a href="https://github.com/krishnakanth21" target="_blank" rel="noopener noreferrer" className="btn-secondary">GitHub ↗</a>
       </div>
 
       <div className="stats-row">
@@ -484,17 +524,7 @@ function Experience() {
             <div className={`timeline-card ${expanded === i ? "open" : ""}`} onClick={() => setExpanded(e => e === i ? -1 : i)}>
               <div className="timeline-header">
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 10, flexShrink: 0,
-                    background: exp.logo.type === 'img' ? '#fff' : exp.logo.bg,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    overflow: "hidden", border: "1px solid var(--border)",
-                  }}>
-                    {exp.logo.type === 'img'
-                      ? <img src={exp.logo.src} alt={exp.company} width={36} height={36} style={{ width: 36, height: 36, objectFit: "contain" }} />
-                      : <span style={{ fontSize: 12, fontWeight: 800, color: exp.logo.color, letterSpacing: "-0.02em" }}>{exp.logo.abbr}</span>
-                    }
-                  </div>
+                  <CompanyLogo logo={exp.logo} company={exp.company} />
                   <div>
                     <div className="timeline-company">{exp.company}</div>
                     <div className="timeline-role">{exp.role}</div>
@@ -613,8 +643,36 @@ function FeaturedCsCard({ cs, onClick }) {
 function Projects() {
   return (
     <section id="projects">
-      <div className="section-eyebrow">04 — Projects &amp; Publications</div>
+      <div className="section-eyebrow">05 — Projects &amp; Publications</div>
       <h2 className="section-title">Built &amp; published</h2>
+
+      <div className="section-eyebrow" style={{ marginBottom: 14 }}>Publication</div>
+      <div className="pub-card" style={{ marginBottom: 24, borderColor: 'var(--border-accent)' }}>
+        <span className="pub-badge">IEEE IS'20</span>
+        <div>
+          <a href="https://ieeexplore.ieee.org/abstract/document/9199928" target="_blank" rel="noopener noreferrer" className="pub-link">
+            User Independent Human Stress Detection
+          </a>
+          <p className="pub-desc">
+            Proposed a user-independent model eliminating affective-state calibration.
+            Achieved 95% (bi-affective), 85% (tri-affective), 83% (multi-affective) accuracy on WESAD dataset — outperforming all user-dependent baselines.
+          </p>
+          <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+            <a
+              href="https://ieeexplore.ieee.org/abstract/document/9199928"
+              target="_blank" rel="noopener noreferrer"
+              style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:12, fontWeight:600, color:'var(--accent)', background:'var(--tag-bg)', border:'1px solid var(--border-accent)', borderRadius:100, padding:'4px 12px', textDecoration:'none' }}
+            >
+              Read on IEEE Xplore ↗
+            </a>
+            {['Python', 'Machine Learning', 'WESAD Dataset', 'Stress Detection'].map(t => (
+              <span className="pill" key={t}>{t}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="section-eyebrow" style={{ marginBottom: 14 }}>Projects</div>
       <div className="projects-grid">
         {PROJECTS.map((p, i) => (
           <div className="project-card" key={i}>
@@ -632,25 +690,6 @@ function Projects() {
           </div>
         ))}
       </div>
-      <div className="pub-card">
-        <span className="pub-badge">IEEE IS'20</span>
-        <div>
-          <a href="https://ieeexplore.ieee.org/abstract/document/9199928" target="_blank" rel="noopener noreferrer" className="pub-link">
-            User Independent Human Stress Detection
-          </a>
-          <p className="pub-desc">
-            Proposed a user-independent model eliminating affective-state calibration.
-            Achieved 95% (bi-affective), 85% (tri-affective), 83% (multi-affective) accuracy on WESAD dataset — outperforming all user-dependent baselines.
-          </p>
-          <a
-            href="https://ieeexplore.ieee.org/abstract/document/9199928"
-            target="_blank" rel="noopener noreferrer"
-            style={{ display:'inline-flex', alignItems:'center', gap:6, marginTop:10, fontSize:12, fontWeight:600, color:'var(--accent)', background:'var(--tag-bg)', border:'1px solid var(--border-accent)', borderRadius:100, padding:'4px 12px', textDecoration:'none' }}
-          >
-            Read on IEEE Xplore ↗
-          </a>
-        </div>
-      </div>
     </section>
   );
 }
@@ -658,8 +697,39 @@ function Projects() {
 function Skills() {
   return (
     <section id="skills">
-      <div className="section-eyebrow">05 — Skills &amp; Background</div>
+      <div className="section-eyebrow">06 — Skills &amp; Background</div>
       <h2 className="section-title">Technical toolkit</h2>
+
+      <div style={{ marginBottom: 36 }}>
+        <div className="section-eyebrow" style={{ marginBottom: 14 }}>Competitive Programming</div>
+        <div className="comp-prog-banner">
+          <div className="comp-prog-stats">
+            <div className="comp-prog-stat">
+              <div className="comp-prog-stat-value">450+</div>
+              <div className="comp-prog-stat-label">Problems solved</div>
+            </div>
+            <div className="comp-prog-stat">
+              <div className="comp-prog-stat-value">500+</div>
+              <div className="comp-prog-stat-label">Day streak</div>
+            </div>
+            <div className="comp-prog-stat">
+              <div className="comp-prog-stat-value">5★</div>
+              <div className="comp-prog-stat-label">HackerRank Gold</div>
+            </div>
+          </div>
+          <a
+            href="https://leetcode.com/u/superkk1991/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-secondary"
+            style={{ fontSize: 13, padding: '8px 16px' }}
+          >
+            LeetCode Profile ↗
+          </a>
+        </div>
+        <LeetCodeHeatmap />
+      </div>
+
       <div className="skills-grid">
         {Object.entries(SKILLS).map(([group, items]) => (
           <div className="skill-group" key={group}>
@@ -670,6 +740,7 @@ function Skills() {
           </div>
         ))}
       </div>
+
       <div style={{ marginTop: 36 }}>
         <div className="section-eyebrow" style={{ marginBottom: 16 }}>Achievements</div>
         <div className="achievements-grid">
@@ -680,7 +751,6 @@ function Skills() {
             </div>
           ))}
         </div>
-        <LeetCodeHeatmap />
       </div>
     </section>
   );
@@ -696,7 +766,7 @@ function Contact() {
   };
   return (
     <section id="contact">
-      <div className="section-eyebrow">06 — Contact</div>
+      <div className="section-eyebrow">07 — Contact</div>
       <h2 className="section-title">Let's talk</h2>
       <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: 28, maxWidth: 440, lineHeight: 1.75 }}>
         Open to Senior Backend, Platform Engineering, and SRE-II opportunities globally.
@@ -750,29 +820,103 @@ function Contact() {
   );
 }
 
+function SystemsShowcase() {
+  const navigate = useNavigate();
+  return (
+    <section style={{ paddingTop: 0 }}>
+      <div className="section-eyebrow" style={{ marginBottom: 12 }}>Systems I've Built</div>
+      <div className="systems-grid">
+        {SYSTEMS.map(s => (
+          <div
+            key={s.id}
+            className="system-card"
+            onClick={() => navigate(`/case-studies/${s.id}`)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => e.key === 'Enter' && navigate(`/case-studies/${s.id}`)}
+          >
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', background: 'var(--tag-bg)', border: '1px solid var(--border-accent)', borderRadius: 6, padding: '3px 9px', width: 'fit-content' }}>{s.abbr}</div>
+            <div>
+              <div className="system-card-metric">{s.metric}</div>
+              <div className="system-card-metric-label">{s.metricLabel}</div>
+            </div>
+            <div className="system-card-title">{s.title}</div>
+            <div className="system-card-hook">{s.hook}</div>
+            <div className="pill-row" style={{ marginTop: 0 }}>
+              {s.tags.map(t => <span className="pill" key={t}>{t}</span>)}
+            </div>
+            <div className="system-card-link">Read case study →</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Writing() {
+  return (
+    <section id="writing">
+      <div className="section-eyebrow">Writing</div>
+      <h2 className="section-title">On distributed systems &amp; infrastructure</h2>
+      <div className="writing-grid">
+        {ARTICLES.map((a, i) => (
+          <a
+            key={i}
+            href={a.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="article-card"
+          >
+            <div className="article-card-label">Medium · Article</div>
+            <div className="article-card-title">{a.title}</div>
+            <div className="article-card-summary">{a.summary}</div>
+            <div className="pill-row" style={{ marginTop: 0 }}>
+              {a.tags.map(t => <span className="pill" key={t}>{t}</span>)}
+            </div>
+            <div className="article-card-cta">Read on Medium ↗</div>
+          </a>
+        ))}
+      </div>
+      <a
+        href="https://medium.com/@krishnakanthe99"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-secondary"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+      >
+        View all articles on Medium ↗
+      </a>
+    </section>
+  );
+}
+
 // ── PORTFOLIO PAGE ────────────────────────────────────────────────────────────
 
 function Portfolio() {
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   const active = useActiveSection();
   useScrollProgress();
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem('theme', theme);
   }, [theme]);
 
   return (
     <>
       <div id="scroll-progress" style={{ width: "0%" }} />
       <Nav active={active} theme={theme} setTheme={setTheme} />
-      <main>
+      <main id="main-content">
         <Hero />
         <hr className="section-divider" />
         <Experience />
         <hr className="section-divider" />
         <ImpactMetrics />
         <hr className="section-divider" />
+        <SystemsShowcase />
         <CaseStudiesPreview />
+        <hr className="section-divider" />
+        <Writing />
         <hr className="section-divider" />
         <Projects />
         <hr className="section-divider" />
