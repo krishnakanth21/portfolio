@@ -148,6 +148,7 @@ The root cause wasn't a single bug — it was an architectural decision to use b
       { aspect: "Parallelism",         before: "Sequential batch jobs — head-of-line blocking",            after: "Parallel Kafka consumers per partition" },
       { aspect: "Data loss risk",      before: "Any crash between batches loses that window's events",     after: "Zero data loss — WAL retains events until committed" },
     ],
+    diagram: { src: '/diagrams/cdc1.png', alt: 'FedEx CrewPay CDC pipeline: PostgreSQL WAL → Debezium → Kafka (MSK) → Spring Batch consumers', caption: 'FedEx CrewPay CDC Pipeline — WAL tailing, Kafka transport, LSN checkpointing, idempotent upserts' },
   },
 
   // ─── O-1 ────────────────────────────────────────────────────────────────
@@ -199,6 +200,7 @@ What made this unusually high-stakes: the AR cutover was tightly coupled to the 
       { aspect: "Regions",        before: "Single region (us-east-1 only)",              after: "us-east-1 + us-west-2 active/DR standby" },
       { aspect: "Prod window",    before: "N/A — migration not attempted",               after: "7 hours (9 PM – 4 AM EDT), 6 teams, 0 incidents" },
     ],
+    diagram: { src: '/diagrams/eks1.png', alt: 'ECS to EKS migration: before/after cluster topology, Helm chart structure, KEDA autoscaling, dual-region setup', caption: 'ECS → EKS Migration — Helm orchestration, KEDA autoscaling, Vault secrets, us-east-1 + us-west-2' },
   },
 
   // ─── O-2 ────────────────────────────────────────────────────────────────
@@ -443,6 +445,17 @@ Qualitative impact: Unlocked Patient Wallet real-time debit flow (claimDebitProc
       { q: "Why own the framework changes rather than delegating to individual service teams?", a: "The skrull-framework is a shared dependency — if each team independently modified their own loading logic, we'd end up with 5 divergent implementations impossible to maintain or upgrade. Centralising in the framework means a single change benefits all 5 services automatically. This is exactly the kind of leverage that makes the solution scale without ongoing maintenance burden." },
       { q: "How did you handle the risk of S3 being unavailable at service startup?", a: "Two layers of protection. First, the dual-mode toggle — if S3 is unavailable, flip property to empty and fall back to classpath without a code redeploy. Second, we added Prometheus metrics (skrull.dmn.error.counter) with alerting on download failure so ops is notified immediately rather than silently falling back. We tested this failure scenario explicitly in staging before rollout." },
     ],
+    architecture: [
+      { aspect: "DMN loading",      before: "Classpath JAR — files baked into Docker image at build time",   after: "S3 TransferManager bulk-download at startup — runtime loading" },
+      { aspect: "Change cycle",     before: "Full R&D sprint (days–weeks) for any rule update",              after: "Minutes for non-prod — business teams fully autonomous" },
+      { aspect: "Image size",       before: "+15–20MB per service (DMN + Skrull files bundled)",             after: "Slimmed across all 5 services — no rule files in image" },
+      { aspect: "Rule ownership",   before: "R&D only — business teams file tickets, wait for sprint",       after: "Business teams own non-prod directly in rule repos" },
+      { aspect: "Env isolation",    before: "No branch isolation — bad DMN breaks CI across all 5 services", after: "Feature branch → isolated S3 subfolder, zero contamination" },
+      { aspect: "DR posture",       before: "None — rules bundled in JARs with no backup strategy",          after: "Cross-region S3 replication to us-west-2, RTO/RPO guaranteed" },
+      { aspect: "Cleanup",          before: "Manual — deployment folders accumulate indefinitely",           after: "Automated S3 lifecycle policy (60-day expiry)" },
+      { aspect: "Rollback",         before: "Full redeploy required to revert a rule change",                after: "Flip property to empty — classpath restored instantly, no redeploy" },
+    ],
+    diagram: { src: '/diagrams/s31.png', alt: 'S3 DMN externalization: rule repo → S3 buckets → runtime download into 5 services, cross-region replication', caption: 'S3 DMN/Skrull Externalization — dual-mode loading, 3 environment buckets, cross-region DR, business self-serve' },
   },
 
   // ─── I-1 ────────────────────────────────────────────────────────────────

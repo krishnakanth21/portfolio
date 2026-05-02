@@ -8,6 +8,7 @@ export default function CaseStudyDetail() {
   const navigate = useNavigate()
   const cs = CASE_STUDIES.find(c => c.id === id)
   const [copied, setCopied] = useState(false)
+  const [diagOpen, setDiagOpen] = useState(false)
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
 
@@ -74,7 +75,7 @@ export default function CaseStudyDetail() {
         </div>
 
         {/* Hero metric + summary */}
-        <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 16, marginBottom: 32, alignItems: 'stretch' }}>
+        <div className="cs-hero-grid" style={{ marginBottom: 32 }}>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-accent)', borderRadius: 14, padding: '24px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: 44, fontWeight: 900, letterSpacing: '-0.05em', color: 'var(--accent)', lineHeight: 1 }}><AnimatedNumber value={cs.heroMetric.value} /></div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 7, fontWeight: 500, lineHeight: 1.4 }}>{cs.heroMetric.label}</div>
@@ -94,27 +95,67 @@ export default function CaseStudyDetail() {
           ))}
         </div>
 
+        {/* Diagram */}
+        {cs.diagram && (
+          <div className="cs-diagram-wrapper" style={{ marginBottom: 24 }}>
+            <div className="section-eyebrow" style={{ marginBottom: 14 }}>Architecture Diagram</div>
+            <div
+              className="cs-diagram-img"
+              onClick={() => setDiagOpen(true)}
+              role="button"
+              tabIndex={0}
+              aria-label="View full diagram"
+              onKeyDown={e => e.key === 'Enter' && setDiagOpen(true)}
+            >
+              <img src={cs.diagram.src} alt={cs.diagram.alt} style={{ width: '100%', display: 'block', borderRadius: 12 }} />
+              <div className="cs-diagram-expand-hint">Tap to expand</div>
+            </div>
+            {cs.diagram.caption && (
+              <div className="cs-diagram-caption">{cs.diagram.caption}</div>
+            )}
+          </div>
+        )}
+
+        {/* Lightbox */}
+        {diagOpen && cs.diagram && (
+          <div className="cs-diagram-lightbox" onClick={() => setDiagOpen(false)}>
+            <button
+              className="cs-diagram-lightbox-close"
+              onClick={e => { e.stopPropagation(); setDiagOpen(false); }}
+              aria-label="Close diagram"
+            >✕</button>
+            <img
+              className="cs-diagram-lightbox-img"
+              src={cs.diagram.src}
+              alt={cs.diagram.alt}
+              onClick={e => e.stopPropagation()}
+            />
+          </div>
+        )}
+
         {/* Architecture */}
         {cs.architecture && (
           <div style={{ marginBottom: 24 }}>
             <div className="section-eyebrow" style={{ marginBottom: 14 }}>Architecture</div>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr 1fr', background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ padding: '10px 16px', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }} />
-                <div style={{ padding: '10px 16px', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ef4444', borderLeft: '1px solid var(--border)' }}>Before</div>
-                <div style={{ padding: '10px 16px', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--green)', borderLeft: '1px solid var(--border)' }}>After</div>
+            <div className="cs-arch-scroll">
+              <div className="cs-arch-header">
+                <div className="cs-arch-cell cs-arch-aspect" />
+                <div className="cs-arch-cell" style={{ color: '#ef4444' }}>Before</div>
+                <div className="cs-arch-cell" style={{ color: 'var(--green)' }}>After</div>
               </div>
               {cs.architecture.map((row, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '140px 1fr 1fr', borderBottom: i < cs.architecture.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                  <div style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.02em', display: 'flex', alignItems: 'center' }}>{row.aspect}</div>
-                  <div style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, borderLeft: '1px solid var(--border)', display: 'flex', alignItems: 'center' }}>
+                <div key={i} className="cs-arch-row" style={{ borderBottom: i < cs.architecture.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <div className="cs-arch-cell cs-arch-aspect">{row.aspect}</div>
+                  <div className="cs-arch-cell">
                     <span style={{ color: '#ef4444', marginRight: 6, flexShrink: 0 }}>✗</span>{row.before}
                   </div>
-                  <div style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text)', lineHeight: 1.5, borderLeft: '1px solid var(--border)', display: 'flex', alignItems: 'center' }}>
+                  <div className="cs-arch-cell cs-arch-after">
                     <span style={{ color: 'var(--green)', marginRight: 6, flexShrink: 0 }}>✓</span>{row.after}
                   </div>
                 </div>
               ))}
+            </div>
             </div>
           </div>
         )}

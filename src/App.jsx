@@ -127,22 +127,15 @@ const FEATURED_CS = CASE_STUDIES.filter(cs =>
 
 const SYSTEMS = [
   {
-    abbr: "S-1",
-    metric: "8-Layer",
-    metricLabel: "Tenant Isolation",
-    title: "Multi-Tenant Security Architecture",
-    hook: "HIPAA-compliant isolation enforced at 8 independent layers — from RLS to application-level guards",
-    id: "tenant-isolation",
-    tags: ["PostgreSQL", "Row-Level Security", "Spring Boot"],
-  },
-  {
-    abbr: "A-1",
-    metric: "N → 1",
-    metricLabel: "API Calls",
-    title: "AR Claims View Bulk API",
-    hook: "Collapsed N per-page API calls into a single 2-query architecture, cutting latency to < 200ms",
-    id: "claims-view-bulk-api",
-    tags: ["Spring Boot", "PostgreSQL", "REST API"],
+    abbr: "R-1",
+    metric: "↓80%",
+    metricLabel: "Rule Change Cycle",
+    title: "S3 DMN/Skrull Externalization",
+    hook: "Eliminated 2-day R&D sprints for business rule changes — any rule live in minutes via S3",
+    id: "s3-dmn",
+    tags: ["AWS S3", "Spring Boot", "Drools DMN"],
+    diagram: "/diagrams/s31.png",
+    diagramAlt: "S3 DMN externalization architecture diagram",
   },
   {
     abbr: "P-1",
@@ -152,6 +145,19 @@ const SYSTEMS = [
     hook: "ECS → EKS migration coordinating 6 teams across all environments with zero business disruption",
     id: "eks-migration",
     tags: ["Kubernetes", "Helm", "Harness CI/CD"],
+    diagram: "/diagrams/eks1.png",
+    diagramAlt: "ECS to EKS migration architecture diagram",
+  },
+  {
+    abbr: "D-1",
+    metric: "7d→30s",
+    metricLabel: "P99 Lag",
+    title: "FedEx CrewPay CDC Pipeline",
+    hook: "Replaced batch polling with WAL-based CDC, cutting replication lag from 7 days to 30 seconds",
+    id: "cdc-pipeline",
+    tags: ["PostgreSQL WAL", "Debezium", "Kafka"],
+    diagram: "/diagrams/cdc1.png",
+    diagramAlt: "FedEx CDC pipeline architecture diagram",
   },
 ];
 
@@ -842,6 +848,11 @@ function SystemsShowcase() {
             </div>
             <div className="system-card-title">{s.title}</div>
             <div className="system-card-hook">{s.hook}</div>
+            {s.diagram && (
+              <div className="system-card-diagram">
+                <img src={s.diagram} alt={s.diagramAlt} className="system-card-diagram-img" />
+              </div>
+            )}
             <div className="pill-row" style={{ marginTop: 0 }}>
               {s.tags.map(t => <span className="pill" key={t}>{t}</span>)}
             </div>
