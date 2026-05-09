@@ -8,7 +8,6 @@ export default function CaseStudyDetail() {
   const navigate = useNavigate()
   const cs = CASE_STUDIES.find(c => c.id === id)
   const [copied, setCopied] = useState(false)
-  const [diagOpen, setDiagOpen] = useState(false)
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
 
@@ -97,39 +96,31 @@ export default function CaseStudyDetail() {
 
         {/* Diagram */}
         {cs.diagram && (
-          <div className="cs-diagram-wrapper" style={{ marginBottom: 24 }}>
-            <div className="section-eyebrow" style={{ marginBottom: 14 }}>Architecture Diagram</div>
-            <div
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div className="section-eyebrow">Architecture Diagram</div>
+              <a
+                href={cs.diagram.src}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}
+              >
+                Open full size ↗
+              </a>
+            </div>
+            <a
+              href={cs.diagram.src}
+              target="_blank"
+              rel="noopener noreferrer"
               className="cs-diagram-img"
-              onClick={() => setDiagOpen(true)}
-              role="button"
-              tabIndex={0}
-              aria-label="View full diagram"
-              onKeyDown={e => e.key === 'Enter' && setDiagOpen(true)}
+              aria-label="View full-size diagram"
             >
               <img src={cs.diagram.src} alt={cs.diagram.alt} style={{ width: '100%', display: 'block', borderRadius: 12 }} />
-              <div className="cs-diagram-expand-hint">Tap to expand</div>
-            </div>
+              <div className="cs-diagram-expand-hint">Click to open full size ↗</div>
+            </a>
             {cs.diagram.caption && (
               <div className="cs-diagram-caption">{cs.diagram.caption}</div>
             )}
-          </div>
-        )}
-
-        {/* Lightbox */}
-        {diagOpen && cs.diagram && (
-          <div className="cs-diagram-lightbox" onClick={() => setDiagOpen(false)}>
-            <button
-              className="cs-diagram-lightbox-close"
-              onClick={e => { e.stopPropagation(); setDiagOpen(false); }}
-              aria-label="Close diagram"
-            >✕</button>
-            <img
-              className="cs-diagram-lightbox-img"
-              src={cs.diagram.src}
-              alt={cs.diagram.alt}
-              onClick={e => e.stopPropagation()}
-            />
           </div>
         )}
 

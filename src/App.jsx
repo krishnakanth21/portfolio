@@ -1,9 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { Mail, Linkedin, Github, Code2, Send, ArrowRight } from "lucide-react";
-import CaseStudies from "./pages/CaseStudies.jsx";
-import CaseStudyDetail from "./pages/CaseStudyDetail.jsx";
 import { CASE_STUDIES } from "./data/caseStudies.js";
+
+const CaseStudies   = lazy(() => import('./pages/CaseStudies.jsx'));
+const CaseStudyDetail = lazy(() => import('./pages/CaseStudyDetail.jsx'));
+
+// Simple analytics — fires Vercel Analytics events when available, no-ops otherwise
+function track(name, props = {}) {
+  if (typeof window !== 'undefined' && typeof window.va === 'function') {
+    window.va('event', { name, ...props });
+  }
+}
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
 
@@ -59,7 +67,7 @@ const EXPERIENCE = [
   },
   {
     company: "Profinch",
-    logo: { type: 'img', src: '/logos/profinch.png', bg: '#fff', fallbackAbbr: 'PF', fallbackColor: '#4060ee', fallbackBg: 'rgba(64,96,238,0.12)' },
+    logo: { type: 'img', src: '/logos/profinch_logo.png', bg: '#fff', fallbackAbbr: 'PF', fallbackColor: '#4060ee', fallbackBg: 'rgba(64,96,238,0.12)' },
     role: "Data Analyst Intern",
     period: "May 2020 – Jun 2020",
     location: "Bangalore, India",
@@ -120,9 +128,9 @@ const ACHIEVEMENTS = [
   { icon: "🎓", text: "B.E. CS — SSN College (CGPA 8.56)" },
 ];
 
-// Featured case studies for portfolio preview (3 picks)
+// Featured case studies — deliberately different from SystemsShowcase (no overlap)
 const FEATURED_CS = CASE_STUDIES.filter(cs =>
-  ["claims-view-bulk-api", "eks-migration", "cdc-pipeline"].includes(cs.id)
+  ["tenant-isolation", "claims-view-bulk-api", "billing-ai"].includes(cs.id)
 );
 
 const SYSTEMS = [
@@ -150,8 +158,8 @@ const SYSTEMS = [
   },
   {
     abbr: "D-1",
-    metric: "7d→30s",
-    metricLabel: "P99 Lag",
+    metric: "30s",
+    metricLabel: "P99 Lag (was 7 days)",
     title: "FedEx CrewPay CDC Pipeline",
     hook: "Replaced batch polling with WAL-based CDC, cutting replication lag from 7 days to 30 seconds",
     id: "cdc-pipeline",
@@ -483,16 +491,16 @@ function Hero() {
       </h1>
 
       <p className="hero-role">
-        Senior Software Engineer
+        Senior Backend Engineer
       </p>
 
       <p className="hero-desc">
-        Building high-throughput distributed financial systems on AWS.
-        Specialized in resilience engineering, cloud infrastructure, and production reliability at scale.
+        Building resilient, high-throughput financial systems on AWS, Kubernetes, and Kafka.<br />
+        5 years scaling distributed architecture, infrastructure automation, and 99.9% production uptime.
       </p>
 
       <div className="hero-relocation">
-        📍 Based in Chennai · Open to relocation — EU / London / Berlin / Amsterdam / Australia
+        📍 Chennai → Open to global relocation (EU · UK · Australia preferred)
       </div>
 
       <div className="hero-ctas">
@@ -502,6 +510,7 @@ function Hero() {
           download="Resume_Krishnakanth_Eswaran.pdf"
           className="btn-primary"
           style={{ background: 'var(--green)', color: '#fff' }}
+          onClick={() => track('Resume Download', { location: 'hero' })}
         >↓ Resume PDF</a>
       </div>
 
@@ -518,7 +527,12 @@ function Hero() {
 }
 
 function Experience() {
-  const [expanded, setExpanded] = useState(0);
+  const [expanded, setExpanded] = useState(new Set([0]));
+  const toggle = i => setExpanded(prev => {
+    const next = new Set(prev);
+    next.has(i) ? next.delete(i) : next.add(i);
+    return next;
+  });
   return (
     <section id="experience">
       <div className="section-eyebrow">02 — Experience</div>
@@ -527,7 +541,7 @@ function Experience() {
         {EXPERIENCE.map((exp, i) => (
           <div className="timeline-item" key={i}>
             <div className={`timeline-dot ${exp.current ? "current" : ""}`} />
-            <div className={`timeline-card ${expanded === i ? "open" : ""}`} onClick={() => setExpanded(e => e === i ? -1 : i)}>
+            <div className={`timeline-card ${expanded.has(i) ? "open" : ""}`} onClick={() => toggle(i)}>
               <div className="timeline-header">
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <CompanyLogo logo={exp.logo} company={exp.company} />
@@ -541,11 +555,11 @@ function Experience() {
                   <div className="timeline-period">{exp.location}</div>
                   {exp.current && <span className="current-badge">● Current</span>}
                   <div className="expand-indicator" style={{ marginTop: 6 }}>
-                    {expanded === i ? "▲ collapse" : "▼ expand"}
+                    {expanded.has(i) ? "▲ collapse" : "▼ expand"}
                   </div>
                 </div>
               </div>
-              {expanded === i && (
+              {expanded.has(i) && (
                 <div className="timeline-body">
                   <ul className="timeline-bullets">
                     {exp.bullets.map((b, j) => <li key={j}>{b}</li>)}
@@ -581,21 +595,17 @@ function CaseStudiesPreview() {
       <div className="section-eyebrow">03 — Case Studies</div>
       <h2 className="section-title">Engineering deep dives</h2>
       <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: 28, maxWidth: 520, lineHeight: 1.75 }}>
-        Eleven systems I've designed, built, and operated: documented with full STAR format, architecture decisions, and real metrics.
-      </p>
-
-      <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: 28, maxWidth: 520, lineHeight: 1.75 }}>
-        Click any case study below for a detailed walkthrough of the problem, solution, impact, and before/after metrics.
+        Eleven systems I've designed, built, and operated — documented with full STAR format, architecture decisions, and real production metrics.
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
         {FEATURED_CS.map(cs => (
-          <FeaturedCsCard key={cs.id} cs={cs} onClick={() => navigate(`/case-studies/${cs.id}`)} />
+          <FeaturedCsCard key={cs.id} cs={cs} onClick={() => { track('Case Study Click', { id: cs.id }); navigate(`/case-studies/${cs.id}`); }} />
         ))}
       </div>
 
       <button
-        onClick={() => navigate("/case-studies")}
+        onClick={() => { track('View All Case Studies'); navigate("/case-studies"); }}
         className="btn-secondary"
         style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
       >
@@ -625,13 +635,16 @@ function FeaturedCsCard({ cs, onClick }) {
       }}
     >
       <div style={{
-        width: 48, height: 48, flexShrink: 0, borderRadius: 10,
-        background: "var(--tag-bg)", display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        border: "1px solid var(--border-accent)",
+        width: 52, height: 52, flexShrink: 0, borderRadius: 10,
+        background: "var(--tag-bg)", display: "flex", alignItems: "center", justifyContent: "center",
+        border: "1px solid var(--border-accent)", overflow: "hidden", padding: "4px",
       }}>
-        <div style={{ fontSize: 16, fontWeight: 900, color: "var(--accent)", letterSpacing: "-0.04em", lineHeight: 1 }}>{cs.heroMetric.value}</div>
-        <div style={{ fontSize: 8, color: "var(--text-muted)", textAlign: "center", lineHeight: 1.2, marginTop: 2 }}>{cs.heroMetric.label}</div>
+        <div style={{
+          fontSize: cs.heroMetric.value.length > 4 ? 11 : cs.heroMetric.value.length > 2 ? 13 : 18,
+          fontWeight: 900, color: "var(--accent)", letterSpacing: "-0.04em",
+          lineHeight: 1, textAlign: "center", whiteSpace: "nowrap",
+          fontFamily: "'Geist', 'Inter', sans-serif",
+        }}>{cs.heroMetric.value}</div>
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
@@ -779,11 +792,28 @@ function Contact() {
         Happy to chat about distributed systems, infrastructure, or anything else.
       </p>
       <div className="contact-grid">
-        <a href="/Resume_Krishnakanth_EU_2026.pdf" download="Resume_Krishnakanth_Eswaran.pdf" className="contact-link" style={{ background: 'var(--green-bg)', borderColor: 'rgba(52,211,153,0.25)' }}>
+        <a
+          href="/Resume_Krishnakanth_EU_2026.pdf"
+          download="Resume_Krishnakanth_Eswaran.pdf"
+          className="contact-link"
+          style={{ background: 'var(--green-bg)', borderColor: 'rgba(52,211,153,0.25)' }}
+          onClick={() => track('Resume Download', { location: 'contact' })}
+        >
           <div className="contact-link-icon" style={{ background: 'var(--green-bg)', color: 'var(--green-text)' }}>↓</div>
           <div>
             <div className="contact-link-title" style={{ color: 'var(--green-text)' }}>Download Resume</div>
-            <div className="contact-link-sub">PDF</div>
+            <div className="contact-link-sub">PDF · EU-focused</div>
+          </div>
+        </a>
+        <a
+          href={`mailto:${EMAIL}?subject=Senior Backend Engineer Opportunity&body=Hi Krishnakanth,%0D%0A%0D%0AI came across your portfolio and would like to discuss a potential opportunity.%0D%0A%0D%0A`}
+          className="contact-link"
+          onClick={() => track('Contact Email', { method: 'mailto' })}
+        >
+          <div className="contact-link-icon"><Send size={16} /></div>
+          <div>
+            <div className="contact-link-title">Send Email</div>
+            <div className="contact-link-sub">Subject pre-filled</div>
           </div>
         </a>
         <button onClick={copyEmail} className="contact-link">
@@ -793,13 +823,6 @@ function Contact() {
             <div className="contact-link-sub">{EMAIL}</div>
           </div>
         </button>
-        <a href={`mailto:${EMAIL}`} className="contact-link">
-          <div className="contact-link-icon"><Send size={16} /></div>
-          <div>
-            <div className="contact-link-title">Send Email</div>
-            <div className="contact-link-sub">Open in mail client</div>
-          </div>
-        </a>
         <a href="https://linkedin.com/in/krishnakanth-eswaran" target="_blank" rel="noopener noreferrer" className="contact-link">
           <div className="contact-link-icon"><Linkedin size={16} /></div>
           <div>
@@ -867,8 +890,11 @@ function SystemsShowcase() {
 function Writing() {
   return (
     <section id="writing">
-      <div className="section-eyebrow">Writing</div>
+      <div className="section-eyebrow">04 — Writing</div>
       <h2 className="section-title">On distributed systems &amp; infrastructure</h2>
+      <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: 28, maxWidth: 520, lineHeight: 1.75 }}>
+        Long-form technical writing on systems I've built in production — the decisions, the trade-offs, and what I'd do differently.
+      </p>
       <div className="writing-grid">
         {ARTICLES.map((a, i) => (
           <a
@@ -962,11 +988,17 @@ export default function App() {
   }, []);
 
   return (
-    <Routes>
-      <Route path="/"                   element={<Portfolio />} />
-      <Route path="/case-studies"       element={<CaseStudies />} />
-      <Route path="/case-studies/:id"   element={<CaseStudyDetail />} />
-      <Route path="*"                   element={<NotFound />} />
-    </Routes>
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', background: '#08080c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 32, height: 32, border: '3px solid #1a1a2e', borderTopColor: '#6382ff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      </div>
+    }>
+      <Routes>
+        <Route path="/"                   element={<Portfolio />} />
+        <Route path="/case-studies"       element={<CaseStudies />} />
+        <Route path="/case-studies/:id"   element={<CaseStudyDetail />} />
+        <Route path="*"                   element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }

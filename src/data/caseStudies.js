@@ -112,7 +112,7 @@ Risk flagged: Native DELETE queries don't explicitly check context_id — mitiga
     company: "Accolite Digital (client: FedEx)",
     period: "Jan 2021 – Aug 2023",
     summary: "Replaced a batch-based replication system with a real-time CDC pipeline, cutting P99 lag from 7 days to under 30 seconds with zero data loss and zero failures per quarter.",
-    heroMetric: { value: "7d → 30s", label: "P99 lag" },
+    heroMetric: { value: "30s", label: "P99 replication lag" },
     metrics: [
       { value: "7d → 30s", label: "P99 replication lag" },
       { value: "3 → 0",    label: "failures / quarter" },
