@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://krishnakanth-portfolio-kk99.vercel.app/sitemap.xml
