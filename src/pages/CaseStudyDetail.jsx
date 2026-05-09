@@ -74,7 +74,7 @@ export default function CaseStudyDetail() {
         </div>
 
         {/* Hero metric + summary */}
-        <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 16, marginBottom: 32, alignItems: 'stretch' }}>
+        <div className="cs-hero-grid" style={{ marginBottom: 32 }}>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-accent)', borderRadius: 14, padding: '24px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: 44, fontWeight: 900, letterSpacing: '-0.05em', color: 'var(--accent)', lineHeight: 1 }}><AnimatedNumber value={cs.heroMetric.value} /></div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 7, fontWeight: 500, lineHeight: 1.4 }}>{cs.heroMetric.label}</div>
@@ -93,6 +93,63 @@ export default function CaseStudyDetail() {
             </div>
           ))}
         </div>
+
+        {/* Diagram */}
+        {cs.diagram && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div className="section-eyebrow">Architecture Diagram</div>
+              <a
+                href={cs.diagram.src}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}
+              >
+                Open full size ↗
+              </a>
+            </div>
+            <a
+              href={cs.diagram.src}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cs-diagram-img"
+              aria-label="View full-size diagram"
+            >
+              <img src={cs.diagram.src} alt={cs.diagram.alt} style={{ width: '100%', display: 'block', borderRadius: 12 }} />
+              <div className="cs-diagram-expand-hint">Click to open full size ↗</div>
+            </a>
+            {cs.diagram.caption && (
+              <div className="cs-diagram-caption">{cs.diagram.caption}</div>
+            )}
+          </div>
+        )}
+
+        {/* Architecture */}
+        {cs.architecture && (
+          <div style={{ marginBottom: 24 }}>
+            <div className="section-eyebrow" style={{ marginBottom: 14 }}>Architecture</div>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+            <div className="cs-arch-scroll">
+              <div className="cs-arch-header">
+                <div className="cs-arch-cell cs-arch-aspect" />
+                <div className="cs-arch-cell" style={{ color: '#ef4444' }}>Before</div>
+                <div className="cs-arch-cell" style={{ color: 'var(--green)' }}>After</div>
+              </div>
+              {cs.architecture.map((row, i) => (
+                <div key={i} className="cs-arch-row" style={{ borderBottom: i < cs.architecture.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <div className="cs-arch-cell cs-arch-aspect">{row.aspect}</div>
+                  <div className="cs-arch-cell">
+                    <span style={{ color: '#ef4444', marginRight: 6, flexShrink: 0 }}>✗</span>{row.before}
+                  </div>
+                  <div className="cs-arch-cell cs-arch-after">
+                    <span style={{ color: 'var(--green)', marginRight: 6, flexShrink: 0 }}>✓</span>{row.after}
+                  </div>
+                </div>
+              ))}
+            </div>
+            </div>
+          </div>
+        )}
 
         {/* Before / After */}
         {cs.beforeItems && cs.afterItems && (
@@ -332,30 +389,7 @@ function NextPrev({ current }) {
 }
 
 function AnimatedNumber({ value }) {
-  const trimmed = String(value).trim()
-  const num = parseInt(trimmed, 10)
-  const isPlainInt = !isNaN(num) && String(num) === trimmed
-
-  const start = isPlainInt ? (num === 0 ? 100 : 0) : null
-  const [display, setDisplay] = useState(start)
-
-  useEffect(() => {
-    if (!isPlainInt) return
-    const end = num
-    const from = num === 0 ? 100 : 0
-    const duration = 1000
-    const startTime = performance.now()
-
-    const tick = (now) => {
-      const t = Math.min((now - startTime) / duration, 1)
-      const eased = 1 - Math.pow(1 - t, 3)
-      setDisplay(Math.round(from + (end - from) * eased))
-      if (t < 1) requestAnimationFrame(tick)
-    }
-    requestAnimationFrame(tick)
-  }, [])
-
-  return <>{isPlainInt ? display : value}</>
+  return <>{value}</>
 }
 
 const navBtnStyle = {

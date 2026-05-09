@@ -90,6 +90,16 @@ Risk flagged: Native DELETE queries don't explicitly check context_id — mitiga
       { q: "What happens if a developer writes native SQL and forgets context_id filter?", a: "Three things catch it: (1) AOP interceptor still sets PostgreSQL session variable (my.tenant_identifier) which backs RLS — if RLS enabled, DB blocks it. (2) Integration tests fail if query returns cross-tenant data (test fixtures with multiple contexts). (3) Code review catches it — native SQL is rare and visible. But it's the weakest link, which is why I flagged it as requiring explicit context_id in native DELETE/UPDATE for true defense-in-depth." },
       { q: "How did you validate all 8 layers work independently?", a: "Tested each in isolation by disabling others: removed servlet filter → controller tests caught it; cleared thread-local mid-request → empty results (fail-closed); disabled Hibernate filter → leaked data; removed AOP aspect → filter never activated; removed DB session variable → RLS tests failed; used findById → hard exception; removed NOT NULL → DB rejected insert; tested async without setCurrentPracticeId → empty results. Each works independently; together they're redundant by design." },
     ],
+    architecture: [
+      { aspect: "Isolation model",  before: "Naive SQL — every query leaks all tenant data",      after: "8-layer defense-in-depth (structurally impossible to leak)" },
+      { aspect: "context_id scope", before: "Manual WHERE clause — 200+ query sites, each a risk", after: "Hibernate @FilterDef auto-stamps every JPA SELECT" },
+      { aspect: "AOP activation",   before: "Developer must call enableFilter() — easy to forget", after: "AspectJ interceptor activates filter on every repository call" },
+      { aspect: "findById()",       before: "Bypasses Hibernate filter — silent cross-tenant read",  after: "CustomRepository throws hard — no silent bypass" },
+      { aspect: "DB enforcement",   before: "None — application layer only",                         after: "PostgreSQL RLS via session variable (my.tenant_identifier)" },
+      { aspect: "Async paths",      before: "Kafka / Camunda carry no practice context",             after: "ThreadLocal default -1L + explicit injection on ingest" },
+      { aspect: "Schema",           before: "context_id nullable — rows can be orphaned",            after: "NOT NULL + composite indexes on (context_id, …)" },
+      { aspect: "Compliance risk",  before: "HIPAA breach on any missed WHERE clause",               after: "Regulatory risk eliminated at architecture level" },
+    ],
   },
 
   // ─── D-1 ────────────────────────────────────────────────────────────────
@@ -102,7 +112,7 @@ Risk flagged: Native DELETE queries don't explicitly check context_id — mitiga
     company: "Accolite Digital (client: FedEx)",
     period: "Jan 2021 – Aug 2023",
     summary: "Replaced a batch-based replication system with a real-time CDC pipeline, cutting P99 lag from 7 days to under 30 seconds with zero data loss and zero failures per quarter.",
-    heroMetric: { value: "7d → 30s", label: "P99 lag" },
+    heroMetric: { value: "30s", label: "P99 replication lag" },
     metrics: [
       { value: "7d → 30s", label: "P99 replication lag" },
       { value: "3 → 0",    label: "failures / quarter" },
@@ -129,6 +139,16 @@ The root cause wasn't a single bug — it was an architectural decision to use b
       { q: "What happens if the Debezium connector restarts mid-stream?", a: "Debezium stores its WAL offset in a dedicated Kafka topic. When the connector restarts, it reads from the last committed offset and resumes from exactly that position. Combined with LSN checkpointing on the consumer, we can handle connector restarts, consumer restarts, and partial failures without data loss or duplication. We tested this failure scenario explicitly in staging before rollout." },
       { q: "How did you validate parity before cutting over?", a: "Ran the old batch system and new CDC pipeline in parallel for 2 weeks, comparing outputs row-by-row. Any divergence was flagged and investigated. This caught 2 edge cases in the Debezium connector configuration that would have caused subtle data issues in production." },
     ],
+    architecture: [
+      { aspect: "Replication method", before: "Batch JDBC polling — queries production tables directly",   after: "Debezium WAL-based CDC — reads PostgreSQL write-ahead log" },
+      { aspect: "P99 replication lag", before: "7 days (batch window + queue backlog)",                   after: "30 seconds (streaming, near-real-time)" },
+      { aspect: "Production impact",   before: "Heavy read queries on live tables under peak load",        after: "Zero — WAL tailing is non-invasive to the primary" },
+      { aspect: "Transport",           before: "Direct DB writes (synchronous, blocking)",                 after: "Kafka/MSK event streams (async, partitioned)" },
+      { aspect: "Failure handling",    before: "Jobs fail silently — data gap with no alert",              after: "At-least-once delivery with committed LSN checkpoints" },
+      { aspect: "Parallelism",         before: "Sequential batch jobs — head-of-line blocking",            after: "Parallel Kafka consumers per partition" },
+      { aspect: "Data loss risk",      before: "Any crash between batches loses that window's events",     after: "Zero data loss — WAL retains events until committed" },
+    ],
+    diagram: { src: '/diagrams/cdc1.png', alt: 'FedEx CrewPay CDC pipeline: PostgreSQL WAL → Debezium → Kafka (MSK) → Spring Batch consumers', caption: 'FedEx CrewPay CDC Pipeline — WAL tailing, Kafka transport, LSN checkpointing, idempotent upserts' },
   },
 
   // ─── O-1 ────────────────────────────────────────────────────────────────
@@ -170,6 +190,17 @@ What made this unusually high-stakes: the AR cutover was tightly coupled to the 
       { q: "Why did you volunteer — it wasn't originally your responsibility?", a: "The migration was assigned to the platform team to 'eventually' drive. But it was slowing down my team — we couldn't scale effectively, deployments had too much manual toil. I saw it as a problem I could solve, and waiting for someone else to prioritise it would have meant months more of operational drag. I proposed owning it, got buy-in from my tech lead, and the scope grew — but so did the impact." },
       { q: "How did you make sure knowledge didn't stay siloed with you?", a: "Every decision documented in a shared Confluence space with the 'why' behind it, not just the 'what.' The 3 KT sessions were hands-on — engineers actually debugged a sample pod failure and performed a rollback exercise in staging. I tracked when teammates started filing EKS infra tickets without pinging me — that was my measure of independence." },
     ],
+    architecture: [
+      { aspect: "Cluster",        before: "ECS on EC2 instances (legacy managed)",       after: "EKS with Helm charts (ath-reference-chart v1.9.0)" },
+      { aspect: "Autoscaling",    before: "CPU-based — wrong signal for I/O workloads",  after: "KEDA on SQS queue depth — scales with actual load" },
+      { aspect: "Secrets",        before: "AWS SSM Parameter Store (manual rotation)",   after: "HashiCorp Vault + ExternalSecrets Operator + IRSA" },
+      { aspect: "CI/CD",          before: "Jenkins (manual triggers, toil-heavy)",        after: "Harness pipelines (automated, per-env config)" },
+      { aspect: "DB migration",   before: "In-place (schema lock risk, downtime window)", after: "AWS DMS Full Load + CDC (zero-downtime cutover)" },
+      { aspect: "Observability",  before: "Ad-hoc CloudWatch (no standardised alerts)",  after: "Prometheus + Grafana with 6 alert rules per SLA" },
+      { aspect: "Regions",        before: "Single region (us-east-1 only)",              after: "us-east-1 + us-west-2 active/DR standby" },
+      { aspect: "Prod window",    before: "N/A — migration not attempted",               after: "7 hours (9 PM – 4 AM EDT), 6 teams, 0 incidents" },
+    ],
+    diagram: { src: '/diagrams/eks1.png', alt: 'ECS to EKS migration: before/after cluster topology, Helm chart structure, KEDA autoscaling, dual-region setup', caption: 'ECS → EKS Migration — Helm orchestration, KEDA autoscaling, Vault secrets, us-east-1 + us-west-2' },
   },
 
   // ─── O-2 ────────────────────────────────────────────────────────────────
@@ -414,6 +445,17 @@ Qualitative impact: Unlocked Patient Wallet real-time debit flow (claimDebitProc
       { q: "Why own the framework changes rather than delegating to individual service teams?", a: "The skrull-framework is a shared dependency — if each team independently modified their own loading logic, we'd end up with 5 divergent implementations impossible to maintain or upgrade. Centralising in the framework means a single change benefits all 5 services automatically. This is exactly the kind of leverage that makes the solution scale without ongoing maintenance burden." },
       { q: "How did you handle the risk of S3 being unavailable at service startup?", a: "Two layers of protection. First, the dual-mode toggle — if S3 is unavailable, flip property to empty and fall back to classpath without a code redeploy. Second, we added Prometheus metrics (skrull.dmn.error.counter) with alerting on download failure so ops is notified immediately rather than silently falling back. We tested this failure scenario explicitly in staging before rollout." },
     ],
+    architecture: [
+      { aspect: "DMN loading",      before: "Classpath JAR — files baked into Docker image at build time",   after: "S3 TransferManager bulk-download at startup — runtime loading" },
+      { aspect: "Change cycle",     before: "Full R&D sprint (days–weeks) for any rule update",              after: "Minutes for non-prod — business teams fully autonomous" },
+      { aspect: "Image size",       before: "+15–20MB per service (DMN + Skrull files bundled)",             after: "Slimmed across all 5 services — no rule files in image" },
+      { aspect: "Rule ownership",   before: "R&D only — business teams file tickets, wait for sprint",       after: "Business teams own non-prod directly in rule repos" },
+      { aspect: "Env isolation",    before: "No branch isolation — bad DMN breaks CI across all 5 services", after: "Feature branch → isolated S3 subfolder, zero contamination" },
+      { aspect: "DR posture",       before: "None — rules bundled in JARs with no backup strategy",          after: "Cross-region S3 replication to us-west-2, RTO/RPO guaranteed" },
+      { aspect: "Cleanup",          before: "Manual — deployment folders accumulate indefinitely",           after: "Automated S3 lifecycle policy (60-day expiry)" },
+      { aspect: "Rollback",         before: "Full redeploy required to revert a rule change",                after: "Flip property to empty — classpath restored instantly, no redeploy" },
+    ],
+    diagram: { src: '/diagrams/s31.png', alt: 'S3 DMN externalization: rule repo → S3 buckets → runtime download into 5 services, cross-region replication', caption: 'S3 DMN/Skrull Externalization — dual-mode loading, 3 environment buckets, cross-region DR, business self-serve' },
   },
 
   // ─── I-1 ────────────────────────────────────────────────────────────────
