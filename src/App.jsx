@@ -93,6 +93,13 @@ const METRICS = [
 
 const PROJECTS = [
   {
+    title: "ApplyVault — Chrome Extension",
+    desc:  "Published Chrome extension (MV3) for job seekers — kanban board with drag-and-drop across 5 stages, one-click job saving from 25+ job boards via a 4-layer extraction pipeline, visa sponsorship detection, OPT/CPT countdown, and local follow-up reminders. Zero backend, all data stored on-device.",
+    tech:  ["Chrome MV3", "Vanilla JS", "chrome.storage", "chrome.alarms", "chrome.scripting"],
+    link:  "https://chromewebstore.google.com/detail/hlhmfimpehonjkhmbmhkimcfgalfacdj",
+    linkLabel: "Chrome Web Store ↗",
+  },
+  {
     title: "Posting Issues Classification & Metrics",
     desc:  "GenAI-powered analytics platform for healthcare insurance billing accuracy. Uses OpenAI + BERT for NLP classification and generates structured corrective metrics.",
     tech:  ["Python", "GenAI", "BERT", "OpenAI API"],
@@ -698,7 +705,7 @@ function Projects() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
               <div className="project-title" style={{ margin: 0 }}>{p.title}</div>
               {p.link
-                ? <a href={p.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", background: "var(--tag-bg)", border: "1px solid var(--border-accent)", borderRadius: 100, padding: "2px 10px", whiteSpace: "nowrap", textDecoration: "none", flexShrink: 0 }}>GitHub ↗</a>
+                ? <a href={p.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", background: "var(--tag-bg)", border: "1px solid var(--border-accent)", borderRadius: 100, padding: "2px 10px", whiteSpace: "nowrap", textDecoration: "none", flexShrink: 0 }}>{p.linkLabel || "GitHub ↗"}</a>
                 : <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 100, padding: "2px 10px", whiteSpace: "nowrap", flexShrink: 0 }}>Private / NDA</span>
               }
             </div>
