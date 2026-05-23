@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Mail, Linkedin, Github, Code2, Send, ArrowRight } from "lucide-react";
 import { CASE_STUDIES } from "./data/caseStudies.js";
 
@@ -809,7 +810,7 @@ function Contact() {
           <div className="contact-link-icon" style={{ background: 'var(--green-bg)', color: 'var(--green-text)' }}>↓</div>
           <div>
             <div className="contact-link-title" style={{ color: 'var(--green-text)' }}>Download Resume</div>
-            <div className="contact-link-sub">PDF · EU-focused</div>
+            <div className="contact-link-sub">PDF</div>
           </div>
         </a>
         <a
@@ -948,6 +949,32 @@ function Portfolio() {
 
   return (
     <>
+      <Helmet>
+        <title>Krishnakanth Eswaran — Senior Backend Engineer | Java · AWS · Kubernetes</title>
+        <meta name="description" content="Senior Backend Engineer (5+ YOE) specialising in distributed financial systems, AWS, and Kubernetes. Real production case studies with metrics. Open to Senior Backend and Platform Engineering roles in Amsterdam, London, and Berlin." />
+        <link rel="canonical" href="https://krishnakanth-portfolio-kk99.vercel.app/" />
+        <meta property="og:type"        content="website" />
+        <meta property="og:url"         content="https://krishnakanth-portfolio-kk99.vercel.app/" />
+        <meta property="og:title"       content="Krishnakanth Eswaran — Senior Backend Engineer" />
+        <meta property="og:description" content="5+ YOE building high-throughput distributed financial systems on AWS. Eleven documented case studies with real production metrics. Open to EU relocation." />
+        <meta property="og:image"       content="https://krishnakanth-portfolio-kk99.vercel.app/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale"      content="en_US" />
+        <meta property="og:site_name"   content="Krishnakanth Eswaran" />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:title"       content="Krishnakanth Eswaran — Senior Backend Engineer" />
+        <meta name="twitter:description" content="5+ YOE building distributed financial systems on AWS. Case studies with real production metrics. Open to EU relocation." />
+        <meta name="twitter:image"       content="https://krishnakanth-portfolio-kk99.vercel.app/og-image.png" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Krishnakanth Eswaran",
+          "url": "https://krishnakanth-portfolio-kk99.vercel.app",
+          "description": "Senior Backend Engineer portfolio with 11 real production case studies.",
+          "author": { "@type": "Person", "name": "Krishnakanth Eswaran" }
+        })}</script>
+      </Helmet>
       <div id="scroll-progress" style={{ width: "0%" }} />
       <Nav active={active} theme={theme} setTheme={setTheme} />
       <main id="main-content">
