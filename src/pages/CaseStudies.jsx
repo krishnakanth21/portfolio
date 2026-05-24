@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { CASE_STUDIES } from '../data/caseStudies'
 
@@ -25,6 +26,29 @@ export default function CaseStudies() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+      <Helmet>
+        <title>Case Studies — Krishnakanth Eswaran | Senior Backend Engineer</title>
+        <meta name="description" content="11 real production engineering case studies from athenahealth, FedEx CrewPay, and Accolite. Architecture, reliability, performance, distributed systems, and platform engineering with real metrics." />
+        <link rel="canonical" href="https://krishnakanth-portfolio-kk99.vercel.app/case-studies" />
+        <meta property="og:type"        content="website" />
+        <meta property="og:url"         content="https://krishnakanth-portfolio-kk99.vercel.app/case-studies" />
+        <meta property="og:title"       content="Case Studies — Krishnakanth Eswaran" />
+        <meta property="og:description" content="11 production case studies with real metrics: API architecture, Kubernetes migration, CDC pipelines, tenant isolation, multi-region DR." />
+        <meta property="og:image"       content="https://krishnakanth-portfolio-kk99.vercel.app/og-image.png" />
+        <meta property="og:site_name"   content="Krishnakanth Eswaran" />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:title"       content="Case Studies — Krishnakanth Eswaran" />
+        <meta name="twitter:description" content="11 production case studies with real metrics: API architecture, Kubernetes migration, CDC pipelines, tenant isolation, multi-region DR." />
+        <meta name="twitter:image"       content="https://krishnakanth-portfolio-kk99.vercel.app/og-image.png" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Portfolio", "item": "https://krishnakanth-portfolio-kk99.vercel.app/" },
+            { "@type": "ListItem", "position": 2, "name": "Case Studies", "item": "https://krishnakanth-portfolio-kk99.vercel.app/case-studies" }
+          ]
+        })}</script>
+      </Helmet>
 
       {/* Top bar */}
       <div style={{

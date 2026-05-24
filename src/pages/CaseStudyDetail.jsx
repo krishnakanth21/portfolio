@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import { CASE_STUDIES } from '../data/caseStudies'
 
@@ -24,8 +25,55 @@ export default function CaseStudyDetail() {
     </div>
   )
 
+  const pageUrl = `https://krishnakanth-portfolio-kk99.vercel.app/case-studies/${cs.id}`
+  const pageTitle = `${cs.title} — Krishnakanth Eswaran | Case Study`
+  const pageDesc = cs.summary.length > 155 ? cs.summary.slice(0, 152) + '...' : cs.summary
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": cs.title,
+    "description": pageDesc,
+    "url": pageUrl,
+    "author": {
+      "@type": "Person",
+      "name": "Krishnakanth Eswaran",
+      "url": "https://krishnakanth-portfolio-kk99.vercel.app"
+    },
+    "datePublished": cs.period,
+    "keywords": cs.stack.join(', '),
+    "articleSection": cs.category
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDesc} />
+        <link rel="canonical" href={pageUrl} />
+        <meta property="og:type"         content="article" />
+        <meta property="og:url"          content={pageUrl} />
+        <meta property="og:title"        content={pageTitle} />
+        <meta property="og:description"  content={pageDesc} />
+        <meta property="og:image"        content="https://krishnakanth-portfolio-kk99.vercel.app/og-image.png" />
+        <meta property="og:image:width"  content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale"       content="en_US" />
+        <meta property="og:site_name"    content="Krishnakanth Eswaran" />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:title"       content={pageTitle} />
+        <meta name="twitter:description" content={pageDesc} />
+        <meta name="twitter:image"       content="https://krishnakanth-portfolio-kk99.vercel.app/og-image.png" />
+        <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Portfolio", "item": "https://krishnakanth-portfolio-kk99.vercel.app/" },
+            { "@type": "ListItem", "position": 2, "name": "Case Studies", "item": "https://krishnakanth-portfolio-kk99.vercel.app/case-studies" },
+            { "@type": "ListItem", "position": 3, "name": cs.title, "item": pageUrl }
+          ]
+        })}</script>
+      </Helmet>
 
       {/* Top bar */}
       <div style={{
